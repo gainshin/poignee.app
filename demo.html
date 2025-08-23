@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poignée 伴阮 - 溫暖的數位陪伴</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #fef7ff 0%, #fdf2f8 25%, #eff6ff 75%, #f0f9ff 100%);
+        }
+        .glass-card {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .glass-button {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .floating-bg {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            mix-blend-mode: multiply;
+            filter: blur(60px);
+            opacity: 0.3;
+            animation: float 6s ease-in-out infinite;
+        }
+        .floating-bg:nth-child(1) {
+            background: #a855f7;
+            top: 5rem;
+            left: 2.5rem;
+        }
+        .floating-bg:nth-child(2) {
+            background: #ec4899;
+            top: 10rem;
+            right: 2.5rem;
+            animation-delay: 2s;
+        }
+        .floating-bg:nth-child(3) {
+            background: #3b82f6;
+            bottom: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation-delay: 4s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(-20px) translateX(10px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Floating Background Elements -->
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen">
+        <!-- Header -->
+        <header class="p-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-3xl font-bold gradient-text mb-2">Poignée 伴阮</h1>
+                            <p class="text-gray-600">溫暖的數位陪伴助手</p>
+                        </div>
+                        <div class="text-4xl animate-pulse">💝</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="px-6 pb-12">
+            <div class="max-w-4xl mx-auto space-y-6">
+                
+                <!-- Welcome Section -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="text-center">
+                        <h2 class="text-2xl font-semibold mb-4">歡迎使用 Poignée (伴阮)</h2>
+                        <p class="text-gray-700 mb-6">專為早期至中期失智症患者設計的溫暖數位陪伴平台</p>
+                        <div class="text-6xl mb-4">🤗</div>
+                        <p class="text-sm text-gray-600">讓科技帶來溫暖的陪伴</p>
+                    </div>
+                </div>
+
+                <!-- Feature Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- AI Companion -->
+                    <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer" onclick="showFeature('ai')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-4">🤖</div>
+                            <h3 class="text-xl font-semibold mb-2">AI 陪伴</h3>
+                            <p class="text-gray-600 text-sm">與小雨進行溫暖的語音對話，獲得情緒支持</p>
+                        </div>
+                    </div>
+
+                    <!-- Memory Journal -->
+                    <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer" onclick="showFeature('memory')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-4">📖</div>
+                            <h3 class="text-xl font-semibold mb-2">記憶日記</h3>
+                            <p class="text-gray-600 text-sm">記錄生活中的美好時刻，保存珍貴回憶</p>
+                        </div>
+                    </div>
+
+                    <!-- Family Connection -->
+                    <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer" onclick="showFeature('family')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-4">👨‍👩‍👧‍👦</div>
+                            <h3 class="text-xl font-semibold mb-2">家人連結</h3>
+                            <p class="text-gray-600 text-sm">與分散各地的家人保持緊密聯繫</p>
+                        </div>
+                    </div>
+
+                    <!-- Cultural Content -->
+                    <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer" onclick="showFeature('culture')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-4">🏮</div>
+                            <h3 class="text-xl font-semibold mb-2">文化寶庫</h3>
+                            <p class="text-gray-600 text-sm">探索節慶、音樂、故事等文化內容</p>
+                        </div>
+                    </div>
+
+                    <!-- Emotion Tracking -->
+                    <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer" onclick="showFeature('emotion')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-4">📊</div>
+                            <h3 class="text-xl font-semibold mb-2">情緒追蹤</h3>
+                            <p class="text-gray-600 text-sm">了解情緒變化趨勢，促進心理健康</p>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard -->
+                    <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer" onclick="showFeature('dashboard')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-4">🏠</div>
+                            <h3 class="text-xl font-semibold mb-2">個人儀表板</h3>
+                            <p class="text-gray-600 text-sm">個性化首頁，快速存取各項功能</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Core Values -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">核心價值</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">🤝</div>
+                            <div>
+                                <h4 class="font-semibold">陪伴而非糾正</h4>
+                                <p class="text-sm text-gray-600">AI對話溫和支持，維護患者尊嚴</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">🌏</div>
+                            <div>
+                                <h4 class="font-semibold">文化敏感性</h4>
+                                <p class="text-sm text-gray-600">融合台灣文化、節慶、語言習慣</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">🔗</div>
+                            <div>
+                                <h4 class="font-semibold">跨世代連結</h4>
+                                <p class="text-sm text-gray-600">幫助分散各地的家庭成員保持聯繫</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">🔒</div>
+                            <div>
+                                <h4 class="font-semibold">隱私與安全</h4>
+                                <p class="text-sm text-gray-600">充分考慮用戶隱私和數據安全</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Demo Status -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="text-center">
+                        <h3 class="text-lg font-semibold mb-3">🚀 應用程式狀態</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between items-center">
+                                <span>React 18 + TypeScript</span>
+                                <span class="text-green-600">✅ 完成</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>所有核心功能模組</span>
+                                <span class="text-green-600">✅ 完成</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Glassmorphism UI 設計</span>
+                                <span class="text-green-600">✅ 完成</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>響應式設計</span>
+                                <span class="text-green-600">✅ 完成</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>完整文檔與程式碼</span>
+                                <span class="text-green-600">✅ 完成</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-4">
+                            完整的 React 應用程式已在 /home/user/webapp 目錄中構建完成
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Feature Modal -->
+    <div id="featureModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card rounded-2xl p-6 max-w-2xl w-full max-h-96 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-xl font-semibold"></h3>
+                <button onclick="closeModal()" class="glass-button rounded-full p-2">✕</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const features = {
+            ai: {
+                title: 'AI 陪伴功能',
+                content: `
+                    <div class="space-y-4">
+                        <div class="text-center text-4xl mb-4">🤖💬</div>
+                        <h4 class="font-semibold">主要功能：</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li>• 語音錄製與即時轉錄</li>
+                            <li>• AI 小雨溫和陪伴對話</li>
+                            <li>• 情緒分析與支持回應</li>
+                            <li>• 四種情緒支持活動（音樂、照片、故事、冥想）</li>
+                            <li>• 對話歷史記錄與回放</li>
+                            <li>• 文化適應性回應</li>
+                        </ul>
+                        <p class="text-xs text-gray-600 bg-gray-100 p-3 rounded-lg">
+                            ✨ 設計理念：「陪伴而非糾正」- AI 不會糾正患者的話語，而是給予溫暖的理解與支持
+                        </p>
+                    </div>
+                `
+            },
+            memory: {
+                title: '記憶日記功能',
+                content: `
+                    <div class="space-y-4">
+                        <div class="text-center text-4xl mb-4">📖✨</div>
+                        <h4 class="font-semibold">主要功能：</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li>• 六種記憶類型分類（日常、家庭、旅行、美食、節慶、童年）</li>
+                            <li>• 情緒標記系統（開心、懷念、平靜等）</li>
+                            <li>• 地點記錄功能</li>
+                            <li>• 標籤系統便於搜尋</li>
+                            <li>• 家人分享機制</li>
+                            <li>• 未來可擴展照片與語音備註</li>
+                        </ul>
+                        <p class="text-xs text-gray-600 bg-gray-100 p-3 rounded-lg">
+                            💝 幫助患者記錄生活點滴，保存美好回憶，同時讓家人了解患者的日常生活
+                        </p>
+                    </div>
+                `
+            },
+            family: {
+                title: '家人連結功能',
+                content: `
+                    <div class="space-y-4">
+                        <div class="text-center text-4xl mb-4">👨‍👩‍👧‍👦🌍</div>
+                        <h4 class="font-semibold">主要功能：</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li>• 每日摘要自動生成與分享</li>
+                            <li>• 家庭成員資料管理</li>
+                            <li>• 跨時區即時時間顯示</li>
+                            <li>• 多語言偏好設定</li>
+                            <li>• 通知偏好客製化</li>
+                            <li>• 分享記憶翻譯功能（未來）</li>
+                        </ul>
+                        <p class="text-xs text-gray-600 bg-gray-100 p-3 rounded-lg">
+                            🌏 專為分散全球的華人家庭設計，讓在台灣的長輩與海外子女保持緊密聯繫
+                        </p>
+                    </div>
+                `
+            },
+            culture: {
+                title: '文化寶庫功能',
+                content: `
+                    <div class="space-y-4">
+                        <div class="text-center text-4xl mb-4">🏮🎵</div>
+                        <h4 class="font-semibold">主要功能：</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li>• 節慶文化內容（春節、中秋節等）</li>
+                            <li>• 台語老歌收藏</li>
+                            <li>• 傳統民間故事</li>
+                            <li>• 多語言內容支援</li>
+                            <li>• 一鍵開啟話題討論</li>
+                            <li>• AI 引導文化記憶分享</li>
+                        </ul>
+                        <p class="text-xs text-gray-600 bg-gray-100 p-3 rounded-lg">
+                            🎎 深度融合台灣本土文化，透過熟悉的節慶、音樂、故事喚醒美好回憶
+                        </p>
+                    </div>
+                `
+            },
+            emotion: {
+                title: '情緒追蹤功能',
+                content: `
+                    <div class="space-y-4">
+                        <div class="text-center text-4xl mb-4">📊💭</div>
+                        <h4 class="font-semibold">主要功能：</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li>• 本週心情趨勢圖表</li>
+                            <li>• 情緒分布統計分析</li>
+                            <li>• 關鍵指標儀表板</li>
+                            <li>• AI 洞察與建議</li>
+                            <li>• 對話情緒自動分析</li>
+                            <li>• 照護者參考報告</li>
+                        </ul>
+                        <p class="text-xs text-gray-600 bg-gray-100 p-3 rounded-lg">
+                            📈 透過數據視覺化幫助患者和家人了解情緒變化，及早發現問題並提供支援
+                        </p>
+                    </div>
+                `
+            },
+            dashboard: {
+                title: '個人儀表板功能',
+                content: `
+                    <div class="space-y-4">
+                        <div class="text-center text-4xl mb-4">🏠⚡</div>
+                        <h4 class="font-semibold">主要功能：</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li>• 個性化時段問候</li>
+                            <li>• 今日活動總覽</li>
+                            <li>• 快速功能入口</li>
+                            <li>• 今日提醒事項</li>
+                            <li>• 心情狀態顯示</li>
+                            <li>• 天氣與時間資訊</li>
+                        </ul>
+                        <p class="text-xs text-gray-600 bg-gray-100 p-3 rounded-lg">
+                            🌟 量身打造的個人化首頁，讓使用者一眼掌握重要資訊，輕鬆存取各項功能
+                        </p>
+                    </div>
+                `
+            }
+        };
+
+        function showFeature(featureKey) {
+            const feature = features[featureKey];
+            document.getElementById('modalTitle').textContent = feature.title;
+            document.getElementById('modalContent').innerHTML = feature.content;
+            document.getElementById('featureModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('featureModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('featureModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎉 Poignée (伴阮) Demo Page Loaded!');
+            console.log('📁 Complete React application available at /home/user/webapp');
+        });
+    </script>
+</body>
+</html>
