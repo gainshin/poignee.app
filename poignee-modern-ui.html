@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poignée 伴阮 - 現代化照護管理平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui'],
+                        'noto': ['Noto Sans TC', 'system-ui']
+                    },
+                    colors: {
+                        'brand': {
+                            50: '#fef7ff',
+                            100: '#feeeff', 
+                            200: '#fcd8ff',
+                            300: '#f9b5ff',
+                            400: '#f482ff',
+                            500: '#ec4eff',
+                            600: '#d821eb',
+                            700: '#b815c7',
+                            800: '#9614a3',
+                            900: '#791682'
+                        },
+                        'accent': {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd', 
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e'
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+                        'medium': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'large': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'glow': '0 0 20px rgba(236, 78, 255, 0.3)',
+                        'glow-blue': '0 0 20px rgba(14, 165, 233, 0.3)'
+                    },
+                    backdropBlur: {
+                        'xs': '2px'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, 
+                #fef7ff 0%, 
+                #f0f9ff 25%, 
+                #feeeff 50%, 
+                #e0f2fe 75%, 
+                #fef7ff 100%);
+            min-height: 100vh;
+        }
+
+        /* Modern Glass Cards */
+        .neo-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .neo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        /* Gradient Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #ec4eff 0%, #d821eb 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(236, 78, 255, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(236, 78, 255, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.6);
+        }
+
+        /* Status Indicators */
+        .status-online {
+            background: linear-gradient(135deg, #10b981, #059669);
+            animation: pulse-subtle 2s infinite;
+        }
+
+        .status-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            animation: pulse-subtle 2s infinite;
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            animation: pulse-urgent 1.5s infinite;
+        }
+
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+
+        @keyframes pulse-urgent {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        /* Modern Chat Interface */
+        .chat-message {
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-user {
+            background: linear-gradient(135deg, #ec4eff 0%, #d821eb 100%);
+            color: white;
+            border-radius: 20px 20px 4px 20px;
+            margin-left: 20%;
+        }
+
+        .message-ai {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 20px 20px 20px 4px;
+            margin-right: 20%;
+        }
+
+        .message-family {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border-radius: 20px 20px 4px 20px;
+            margin-left: 15%;
+            margin-right: 15%;
+        }
+
+        /* Navigation Tabs */
+        .nav-tab {
+            position: relative;
+            padding: 12px 24px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #ec4eff 0%, #d821eb 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(236, 78, 255, 0.4);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-1px);
+        }
+
+        /* Floating Elements */
+        .floating-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.1;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-orb:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(45deg, #ec4eff, #d821eb);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-orb:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #0ea5e9, #0284c7);
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .floating-orb:nth-child(3) {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(45deg, #10b981, #059669);
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+            33% { transform: translateY(-20px) translateX(10px) scale(1.1); }
+            66% { transform: translateY(10px) translateX(-10px) scale(0.9); }
+        }
+
+        /* Scroll Improvements */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(236, 78, 255, 0.3) transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #ec4eff, #d821eb);
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #d821eb, #b815c7);
+        }
+
+        /* Loading States */
+        .loading-shimmer {
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0) 0%, 
+                rgba(255, 255, 255, 0.8) 50%, 
+                rgba(255, 255, 255, 0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Micro Interactions */
+        .interactive-element {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .interactive-element:hover {
+            transform: scale(1.02);
+        }
+
+        .interactive-element:active {
+            transform: scale(0.98);
+        }
+
+        /* Modern Typography */
+        .text-gradient {
+            background: linear-gradient(135deg, #ec4eff 0%, #d821eb 50%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .text-glow {
+            text-shadow: 0 0 20px rgba(236, 78, 255, 0.5);
+        }
+
+        /* Page Transitions */
+        .page {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Modern Form Elements */
+        .form-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #ec4eff;
+            box-shadow: 0 0 0 3px rgba(236, 78, 255, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Status Cards */
+        .status-card-good {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-card-warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-card-error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body class="font-inter">
+    <!-- Floating Background Elements -->
+    <div class="floating-orb"></div>
+    <div class="floating-orb"></div>
+    <div class="floating-orb"></div>
+
+    <div class="min-h-screen">
+        <!-- Modern Header -->
+        <header class="sticky top-0 z-50">
+            <div class="neo-card mx-4 mt-4 mb-6">
+                <div class="px-8 py-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-glow">
+                                P
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-gradient">Poignée 伴阮</h1>
+                                <p class="text-slate-600 text-sm font-medium">智能照護管理平台</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-6">
+                            <!-- Connection Status -->
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 status-online rounded-full shadow-glow"></div>
+                                <span class="text-sm font-medium text-slate-700">系統連線正常</span>
+                            </div>
+                            
+                            <!-- User Avatar -->
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center text-white font-semibold">
+                                    陳
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-slate-800">陳美玲</div>
+                                    <div class="text-xs text-slate-500">主要照顧者</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-4 max-w-7xl">
+            <!-- Navigation Tabs -->
+            <div class="mb-8">
+                <div class="flex justify-center">
+                    <div class="neo-card p-2">
+                        <div class="flex space-x-2">
+                            <button onclick="switchTab('overview')" class="nav-tab active" id="overviewTab">
+                                <span class="flex items-center space-x-2">
+                                    <span class="text-lg">📊</span>
+                                    <span class="font-medium">總覽</span>
+                                </span>
+                            </button>
+                            <button onclick="switchTab('ai-chat')" class="nav-tab" id="aiChatTab">
+                                <span class="flex items-center space-x-2">
+                                    <span class="text-lg">🤖</span>
+                                    <span class="font-medium">AI 諮詢</span>
+                                </span>
+                            </button>
+                            <button onclick="switchTab('navigation')" class="nav-tab" id="navigationTab">
+                                <span class="flex items-center space-x-2">
+                                    <span class="text-lg">🚗</span>
+                                    <span class="font-medium">導航安全</span>
+                                </span>
+                            </button>
+                            <button onclick="switchTab('family')" class="nav-tab" id="familyTab">
+                                <span class="flex items-center space-x-2">
+                                    <span class="text-lg">👥</span>
+                                    <span class="font-medium">家庭協作</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overviewContent" class="page active">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Main Status Card -->
+                    <div class="lg:col-span-2">
+                        <div class="neo-card p-8 mb-8">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-2xl font-bold text-slate-800">王爺爺今日狀況</h2>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 status-online rounded-full"></div>
+                                    <span class="text-sm font-medium text-emerald-700">狀態良好</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="status-card-good rounded-2xl p-6 interactive-element">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="text-3xl">🧠</div>
+                                        <div class="text-right">
+                                            <div class="text-2xl font-bold text-emerald-700">85%</div>
+                                            <div class="text-sm text-emerald-600">認知活動</div>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-slate-600">今日完成記憶訓練，表現穩定</p>
+                                </div>
+                                
+                                <div class="status-card-good rounded-2xl p-6 interactive-element">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="text-3xl">🚗</div>
+                                        <div class="text-right">
+                                            <div class="text-2xl font-bold text-emerald-700">安全</div>
+                                            <div class="text-sm text-emerald-600">駕駛狀態</div>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-slate-600">按預設路線，無偏離行為</p>
+                                </div>
+                                
+                                <div class="status-card-warning rounded-2xl p-6 interactive-element">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="text-3xl">💊</div>
+                                        <div class="text-right">
+                                            <div class="text-2xl font-bold text-amber-700">提醒</div>
+                                            <div class="text-sm text-amber-600">用藥時間</div>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-slate-600">晚餐後藥物 - 19:30</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="neo-card p-6">
+                            <h3 class="text-lg font-semibold text-slate-800 mb-4">快速操作</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <button class="btn-primary interactive-element">
+                                    <span class="block text-lg mb-1">📞</span>
+                                    <span class="text-sm">緊急聯絡</span>
+                                </button>
+                                <button class="btn-secondary interactive-element">
+                                    <span class="block text-lg mb-1">📍</span>
+                                    <span class="text-sm">位置追蹤</span>
+                                </button>
+                                <button class="btn-primary interactive-element">
+                                    <span class="block text-lg mb-1">💊</span>
+                                    <span class="text-sm">用藥提醒</span>
+                                </button>
+                                <button class="btn-secondary interactive-element">
+                                    <span class="block text-lg mb-1">🏥</span>
+                                    <span class="text-sm">醫療記錄</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="space-y-6">
+                        <!-- AI Assistant Card -->
+                        <div class="neo-card p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center text-white text-xl shadow-glow">
+                                    🌧️
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-slate-800">小雨 AI 助理</h3>
+                                    <p class="text-xs text-slate-500">專屬照護顧問</p>
+                                </div>
+                            </div>
+                            <div class="bg-gradient-to-r from-brand-50 to-accent-50 rounded-xl p-4 mb-4">
+                                <p class="text-sm text-slate-700 mb-2">"今天王爺爺的整體狀況不錯，建議您可以安排一些輕度的戶外活動。"</p>
+                                <div class="text-xs text-slate-500">2分鐘前</div>
+                            </div>
+                            <button class="btn-primary w-full interactive-element">
+                                開始對話
+                            </button>
+                        </div>
+
+                        <!-- Recent Activities -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">最近活動</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-sm">✅</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-slate-700">完成晨間運動</p>
+                                        <p class="text-xs text-slate-500">30分鐘前</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-sm">🚗</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-slate-700">外出購物</p>
+                                        <p class="text-xs text-slate-500">1小時前</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-sm">💊</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-slate-700">按時服藥</p>
+                                        <p class="text-xs text-slate-500">3小時前</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Family Status -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">家庭成員</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">陳</div>
+                                        <span class="text-sm text-slate-700">陳美玲</span>
+                                    </div>
+                                    <div class="w-2 h-2 status-online rounded-full"></div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">王</div>
+                                        <span class="text-sm text-slate-700">王志明</span>
+                                    </div>
+                                    <div class="w-2 h-2 status-online rounded-full"></div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">李</div>
+                                        <span class="text-sm text-slate-700">李小華</span>
+                                    </div>
+                                    <div class="w-2 h-2 status-warning rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Chat Tab -->
+            <div id="aiChatContent" class="page">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <!-- Chat Interface -->
+                    <div class="lg:col-span-3">
+                        <div class="neo-card p-6">
+                            <!-- Chat Header -->
+                            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center text-white text-xl shadow-glow">
+                                        🌧️
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-slate-800">小雨 AI 諮詢</h3>
+                                        <p class="text-sm text-slate-500">專業照護建議 • 24小時在線</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 status-online rounded-full"></div>
+                                    <span class="text-sm text-slate-600">線上</span>
+                                </div>
+                            </div>
+
+                            <!-- Chat Messages -->
+                            <div class="h-96 overflow-y-auto custom-scrollbar space-y-4 mb-6" id="chatMessages">
+                                <div class="chat-message">
+                                    <div class="message-ai p-4 max-w-md">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center text-sm">
+                                                🌧️
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-slate-700">您好！我是小雨，您的專屬AI照護助理。今天有什麼需要協助的嗎？</p>
+                                                <div class="text-xs text-slate-500 mt-2">剛剛</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Input -->
+                            <div class="flex space-x-3">
+                                <input type="text" 
+                                       placeholder="輸入您的問題..." 
+                                       class="flex-1 form-input"
+                                       id="chatInput"
+                                       onkeypress="if(event.key==='Enter') sendMessage()">
+                                <button onclick="sendMessage()" class="btn-primary interactive-element">
+                                    發送
+                                </button>
+                            </div>
+
+                            <!-- Quick Questions -->
+                            <div class="mt-6">
+                                <h4 class="text-sm font-medium text-slate-700 mb-3">常見問題</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="quickQuestion('sleep')" class="px-3 py-2 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors interactive-element">
+                                        😴 睡眠問題
+                                    </button>
+                                    <button onclick="quickQuestion('driving')" class="px-3 py-2 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors interactive-element">
+                                        🚗 駕駛安全
+                                    </button>
+                                    <button onclick="quickQuestion('behavior')" class="px-3 py-2 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors interactive-element">
+                                        🧠 行為變化
+                                    </button>
+                                    <button onclick="quickQuestion('emergency')" class="px-3 py-2 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors interactive-element">
+                                        🚨 緊急處理
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Features Sidebar -->
+                    <div class="space-y-6">
+                        <!-- Consultation Mode -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">諮詢模式</h3>
+                            <div class="space-y-3">
+                                <button class="w-full p-3 text-left bg-gradient-to-r from-brand-50 to-brand-100 border border-brand-200 rounded-xl interactive-element">
+                                    <div class="text-sm font-medium text-brand-700">🤝 一對一諮詢</div>
+                                    <div class="text-xs text-brand-600 mt-1">深度個人化建議</div>
+                                </button>
+                                <button class="w-full p-3 text-left bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-accent-50 hover:to-accent-100 interactive-element">
+                                    <div class="text-sm font-medium text-slate-700">👥 家庭群組</div>
+                                    <div class="text-xs text-slate-600 mt-1">多人協作討論</div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- AI Insights -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">AI 洞察</h3>
+                            <div class="space-y-4">
+                                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                    <div class="text-sm font-medium text-emerald-700 mb-1">📊 行為模式</div>
+                                    <div class="text-xs text-emerald-600">活動規律性提升15%</div>
+                                </div>
+                                <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <div class="text-sm font-medium text-blue-700 mb-1">🎯 建議重點</div>
+                                    <div class="text-xs text-blue-600">加強記憶訓練活動</div>
+                                </div>
+                                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                                    <div class="text-sm font-medium text-amber-700 mb-1">⚠️ 關注事項</div>
+                                    <div class="text-xs text-amber-600">夜間睡眠品質監控</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Consultations -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">最近諮詢</h3>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-700">駕駛安全評估</span>
+                                    <span class="text-slate-500 text-xs">2小時前</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-700">用藥時間調整</span>
+                                    <span class="text-slate-500 text-xs">昨天</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-700">情緒變化觀察</span>
+                                    <span class="text-slate-500 text-xs">3天前</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tab (Hidden by default) -->
+            <div id="navigationContent" class="page">
+                <div class="neo-card p-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">導航與駕駛安全</h2>
+                    <p class="text-slate-600">此功能正在開發中，敬請期待...</p>
+                </div>
+            </div>
+
+            <!-- Family Tab (Hidden by default) -->
+            <div id="familyContent" class="page">
+                <div class="neo-card p-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">家庭協作</h2>
+                    <p class="text-slate-600">此功能正在開發中，敬請期待...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Current active tab
+        let activeTab = 'overview';
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Add welcome message to AI chat
+            setTimeout(() => {
+                addChatMessage('歡迎使用 Poignée！我是小雨，您的專屬AI照護助理。有任何關於王爺爺照護的問題，隨時可以詢問我。', false);
+            }, 1000);
+        }
+
+        // Tab switching function
+        function switchTab(tab) {
+            // Update active tab
+            activeTab = tab;
+            
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            document.getElementById(tab + 'Tab').classList.add('active');
+            document.getElementById(tab + 'Content').classList.add('active');
+        }
+
+        // Chat functionality
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addChatMessage(message, true);
+                input.value = '';
+                
+                // Simulate AI response
+                setTimeout(() => {
+                    const response = generateAIResponse(message);
+                    addChatMessage(response, false);
+                }, 1500);
+            }
+        }
+
+        function addChatMessage(message, isUser = false) {
+            const chatContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            
+            if (isUser) {
+                messageDiv.innerHTML = `
+                    <div class="message-user p-4 max-w-md ml-auto">
+                        <p class="text-sm">${message}</p>
+                        <div class="text-xs opacity-80 mt-2">剛剛</div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-ai p-4 max-w-md">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center text-sm">
+                                🌧️
+                            </div>
+                            <div>
+                                <p class="text-sm text-slate-700">${message}</p>
+                                <div class="text-xs text-slate-500 mt-2">剛剛</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function generateAIResponse(message) {
+            const responses = {
+                'sleep': '關於睡眠問題，我建議您可以：\n\n🌙 維持規律作息時間\n🛏️ 創造舒適睡眠環境\n☕ 避免晚間咖啡因\n💊 檢視藥物影響\n\n需要更詳細的睡眠改善計畫嗎？',
+                'driving': '駕駛安全很重要，建議：\n\n🚗 定期評估駕駛能力\n📱 使用語音導航系統\n👥 新路線先有人陪同\n⚠️ 設定安全區域監控\n\n我可以協助您制定駕駛安全計畫。',
+                'behavior': '觀察行為變化需要：\n\n📊 記錄日常行為模式\n🧠 注意認知功能變化\n💝 保持耐心與理解\n👨‍⚕️ 及時尋求專業建議\n\n有具體的行為變化想討論嗎？',
+                'emergency': '緊急處理步驟：\n\n🚨 確保安全，必要時撥打119\n📞 通知家庭成員\n🏥 準備醫療資訊\n📍 提供準確位置\n\n系統已為您設定緊急聯絡流程。'
+            };
+
+            // Check for keywords
+            for (const [key, response] of Object.entries(responses)) {
+                if (message.toLowerCase().includes(key) || 
+                    (key === 'sleep' && (message.includes('睡眠') || message.includes('失眠'))) ||
+                    (key === 'driving' && (message.includes('開車') || message.includes('駕駛'))) ||
+                    (key === 'behavior' && (message.includes('行為') || message.includes('情緒'))) ||
+                    (key === 'emergency' && (message.includes('緊急') || message.includes('危險')))) {
+                    return response;
+                }
+            }
+            
+            return `我理解您的關切。讓我為您提供個人化的建議：\n\n💭 請告訴我更多具體情況\n📋 我會根據王爺爺的狀況分析\n🎯 提供針對性的解決方案\n📊 持續追蹤效果並調整\n\n您還有其他想了解的嗎？`;
+        }
+
+        function quickQuestion(type) {
+            const questions = {
+                'sleep': '最近爸爸的睡眠品質如何？有改善建議嗎？',
+                'driving': '關於駕駛安全，需要注意哪些警訊？',
+                'behavior': '如何判斷行為變化是否需要就醫？',
+                'emergency': '緊急狀況的處理流程是什麼？'
+            };
+            
+            const input = document.getElementById('chatInput');
+            input.value = questions[type];
+            sendMessage();
+        }
+
+        // Add some interactive animations
+        document.addEventListener('mousemove', function(e) {
+            const orbs = document.querySelectorAll('.floating-orb');
+            orbs.forEach((orb, index) => {
+                const x = (e.clientX / window.innerWidth) * 10;
+                const y = (e.clientY / window.innerHeight) * 10;
+                orb.style.transform = `translate(${x * (index + 1)}px, ${y * (index + 1)}px)`;
+            });
+        });
+
+        // Periodic status updates
+        setInterval(() => {
+            // Simulate real-time updates
+            if (Math.random() > 0.8) {
+                console.log('Status update simulated');
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
