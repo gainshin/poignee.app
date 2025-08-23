@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poignée 伴阮 - 行動版應用</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #fef7ff 0%, #fdf2f8 25%, #eff6ff 75%, #f0f9ff 100%);
+            overscroll-behavior: none;
+        }
+        .glass-card {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .glass-button {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-button:hover, .glass-button:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+        .glass-button.active {
+            background: rgba(147, 51, 234, 0.3);
+            border-color: rgba(147, 51, 234, 0.5);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .recording {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .message {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .floating-bg {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            mix-blend-mode: multiply;
+            filter: blur(40px);
+            opacity: 0.2;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .floating-bg:nth-child(1) {
+            background: #a855f7;
+            top: 2rem;
+            left: 1rem;
+        }
+        .floating-bg:nth-child(2) {
+            background: #ec4899;
+            top: 8rem;
+            right: 1rem;
+            animation-delay: 2s;
+        }
+        .floating-bg:nth-child(3) {
+            background: #3b82f6;
+            bottom: 8rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation-delay: 4s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(-15px) translateX(8px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+    <!-- Floating Background Elements -->
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+
+    <!-- Main Container -->
+    <div class="relative z-10">
+        
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">早安，王爺爺！</h1>
+                        <p class="text-sm text-gray-600" id="currentDate"></p>
+                    </div>
+                    <div class="text-2xl">☀️</div>
+                </div>
+            </div>
+
+            <!-- Today's Summary -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="glass-card rounded-xl p-3 text-center">
+                    <div class="text-2xl mb-1">💬</div>
+                    <div class="text-lg font-bold" id="todayConversations">3</div>
+                    <div class="text-xs text-gray-600">今日對話</div>
+                </div>
+                <div class="glass-card rounded-xl p-3 text-center">
+                    <div class="text-2xl mb-1">📖</div>
+                    <div class="text-lg font-bold" id="todayMemories">1</div>
+                    <div class="text-xs text-gray-600">記錄回憶</div>
+                </div>
+                <div class="glass-card rounded-xl p-3 text-center">
+                    <div class="text-2xl mb-1">😊</div>
+                    <div class="text-sm font-bold">開心</div>
+                    <div class="text-xs text-gray-600">整體心情</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">快速開始</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="navigateTo('companion')" class="glass-button rounded-xl p-4 text-center">
+                        <div class="text-3xl mb-2">🤖</div>
+                        <div class="text-sm font-medium">與小雨聊天</div>
+                    </button>
+                    <button onclick="navigateTo('memories')" class="glass-button rounded-xl p-4 text-center">
+                        <div class="text-3xl mb-2">📖</div>
+                        <div class="text-sm font-medium">記錄回憶</div>
+                    </button>
+                    <button onclick="navigateTo('family')" class="glass-button rounded-xl p-4 text-center">
+                        <div class="text-3xl mb-2">👨‍👩‍👧‍👦</div>
+                        <div class="text-sm font-medium">聯繫家人</div>
+                    </button>
+                    <button onclick="navigateTo('culture')" class="glass-button rounded-xl p-4 text-center">
+                        <div class="text-3xl mb-2">🏮</div>
+                        <div class="text-sm font-medium">文化寶庫</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reminders -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">今日提醒</h2>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3 p-2 bg-white/20 rounded-lg">
+                        <input type="checkbox" class="w-4 h-4" onchange="toggleReminder(this)">
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">記得吃藥</div>
+                            <div class="text-xs text-gray-600">09:00</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2 bg-white/20 rounded-lg">
+                        <input type="checkbox" class="w-4 h-4" onchange="toggleReminder(this)">
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">下午散步</div>
+                            <div class="text-xs text-gray-600">15:00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Companion Page -->
+        <div id="companion" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🤖</div>
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">AI 陪伴 - 小雨</h1>
+                        <p class="text-sm text-gray-600">我在這裡陪您聊天</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emotional Support Activities -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">情緒支持活動</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="startActivity('music')" class="glass-button rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🎵</div>
+                        <div class="text-xs">聽懷舊音樂</div>
+                    </button>
+                    <button onclick="startActivity('photos')" class="glass-button rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">📷</div>
+                        <div class="text-xs">看照片</div>
+                    </button>
+                    <button onclick="startActivity('stories')" class="glass-button rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">📚</div>
+                        <div class="text-xs">聊節慶故事</div>
+                    </button>
+                    <button onclick="startActivity('meditation')" class="glass-button rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🧘</div>
+                        <div class="text-xs">心靈寧靜</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="glass-card rounded-2xl p-4 h-64 overflow-y-auto" id="chatMessages">
+                <div class="message mb-3">
+                    <div class="bg-white/50 rounded-xl p-3 mb-1">
+                        <p class="text-sm">您好！我是小雨，很高興能陪您聊天。今天過得怎麼樣呢？</p>
+                    </div>
+                    <div class="text-xs text-gray-500">小雨 • 剛剛</div>
+                </div>
+            </div>
+
+            <!-- Voice Input -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center gap-3">
+                    <button id="recordBtn" onclick="toggleRecording()" class="glass-button rounded-full p-4">
+                        <div class="text-2xl">🎤</div>
+                    </button>
+                    <input type="text" id="textInput" placeholder="輸入訊息或點擊麥克風說話..." class="flex-1 glass-button rounded-xl px-4 py-2 text-sm">
+                    <button onclick="sendMessage()" class="glass-button rounded-full p-3">
+                        <div class="text-lg">📤</div>
+                    </button>
+                </div>
+                <div id="recordingStatus" class="text-xs text-gray-600 mt-2 hidden">正在錄音中...</div>
+            </div>
+        </div>
+
+        <!-- Memory Journal Page -->
+        <div id="memories" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">記憶日記</h1>
+                        <p class="text-sm text-gray-600">記錄生活中的美好時刻</p>
+                    </div>
+                    <button onclick="showAddMemoryForm()" class="glass-button rounded-full p-2">
+                        <div class="text-xl">➕</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Memory Form -->
+            <div id="addMemoryForm" class="glass-card rounded-2xl p-4 hidden">
+                <h2 class="text-lg font-semibold mb-3">新增回憶</h2>
+                <div class="space-y-3">
+                    <input type="text" id="memoryTitle" placeholder="記憶標題..." class="w-full glass-button rounded-xl px-4 py-2 text-sm">
+                    <textarea id="memoryContent" placeholder="描述這個美好的回憶..." class="w-full glass-button rounded-xl px-4 py-2 text-sm h-20 resize-none"></textarea>
+                    <select id="memoryType" class="w-full glass-button rounded-xl px-4 py-2 text-sm">
+                        <option value="daily_life">📅 日常生活</option>
+                        <option value="family">👨‍👩‍👧‍👦 家庭時光</option>
+                        <option value="travel">✈️ 旅行回憶</option>
+                        <option value="food">🍽️ 美食記憶</option>
+                        <option value="festival">🎉 節慶活動</option>
+                        <option value="childhood">👶 童年往事</option>
+                    </select>
+                    <select id="memoryMood" class="w-full glass-button rounded-xl px-4 py-2 text-sm">
+                        <option value="happy">😊 開心</option>
+                        <option value="nostalgic">🥺 懷念</option>
+                        <option value="peaceful">😌 平靜</option>
+                        <option value="excited">🤗 興奮</option>
+                        <option value="grateful">🙏 感恩</option>
+                        <option value="proud">💪 驕傲</option>
+                    </select>
+                    <div class="flex gap-2">
+                        <button onclick="saveMemory()" class="flex-1 glass-button rounded-xl py-2 text-sm font-medium bg-purple-500/30">
+                            儲存回憶
+                        </button>
+                        <button onclick="hideAddMemoryForm()" class="flex-1 glass-button rounded-xl py-2 text-sm">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory List -->
+            <div id="memoryList">
+                <div class="glass-card rounded-2xl p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <div class="text-2xl">🎉</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold mb-1">中秋節家族聚餐</h3>
+                            <p class="text-sm text-gray-700 mb-2">昨天是中秋節，全家人聚在一起吃月餅、賞月。孫子們很開心...</p>
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span>😊 開心</span>
+                                <span>•</span>
+                                <span>2 天前</span>
+                                <span>•</span>
+                                <span class="text-green-600">已分享</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Family Connection Page -->
+        <div id="family" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <h1 class="text-xl font-bold gradient-text mb-2">家人連結</h1>
+                <p class="text-sm text-gray-600">與家人保持聯繫，分享近況</p>
+            </div>
+
+            <!-- Daily Summary -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">今日摘要</h2>
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-3 mb-3">
+                    <div class="grid grid-cols-3 gap-2 mb-3 text-center">
+                        <div>
+                            <div class="text-lg font-bold">5</div>
+                            <div class="text-xs text-gray-600">對話次數</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold">開心</div>
+                            <div class="text-xs text-gray-600">整體心情</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold">2</div>
+                            <div class="text-xs text-gray-600">記錄回憶</div>
+                        </div>
+                    </div>
+                    <div class="text-sm">
+                        <strong>今日亮點：</strong>與小雨聊了童年回憶，分享了中秋節的美好時光
+                    </div>
+                </div>
+                <button onclick="shareDailySummary()" class="w-full glass-button rounded-xl py-2 text-sm">
+                    📤 分享今日摘要給家人
+                </button>
+            </div>
+
+            <!-- Family Members -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">家庭成員</h2>
+                <div class="space-y-3">
+                    <div class="bg-white/20 rounded-xl p-3">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-semibold">David Wang</h3>
+                                <p class="text-sm text-gray-600">兒子</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">溫哥華</div>
+                                <div class="font-semibold" id="vancouverTime">08:30</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="glass-button rounded-lg px-3 py-1 text-xs">📞 電話</button>
+                            <button class="glass-button rounded-lg px-3 py-1 text-xs">📧 郵件</button>
+                            <button class="glass-button rounded-lg px-3 py-1 text-xs">💬 訊息</button>
+                        </div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-semibold">王美玲</h3>
+                                <p class="text-sm text-gray-600">女兒</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">台北</div>
+                                <div class="font-semibold" id="taipeiTime">21:30</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="glass-button rounded-lg px-3 py-1 text-xs">📞 電話</button>
+                            <button class="glass-button rounded-lg px-3 py-1 text-xs">📧 郵件</button>
+                            <button class="glass-button rounded-lg px-3 py-1 text-xs">💬 LINE</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cultural Content Page -->
+        <div id="culture" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <h1 class="text-xl font-bold gradient-text mb-2">文化寶庫</h1>
+                <p class="text-sm text-gray-600">探索文化記憶，喚醒美好回憶</p>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                <button onclick="filterCulture('all')" class="glass-button active rounded-xl px-4 py-2 text-sm whitespace-nowrap" data-category="all">
+                    📚 全部
+                </button>
+                <button onclick="filterCulture('festival')" class="glass-button rounded-xl px-4 py-2 text-sm whitespace-nowrap" data-category="festival">
+                    🎉 節慶
+                </button>
+                <button onclick="filterCulture('music')" class="glass-button rounded-xl px-4 py-2 text-sm whitespace-nowrap" data-category="music">
+                    🎵 音樂
+                </button>
+                <button onclick="filterCulture('story')" class="glass-button rounded-xl px-4 py-2 text-sm whitespace-nowrap" data-category="story">
+                    📖 故事
+                </button>
+            </div>
+
+            <!-- Cultural Content -->
+            <div id="culturalContent">
+                <div class="glass-card rounded-2xl p-4 mb-3 cultural-item" data-category="festival">
+                    <div class="flex items-start gap-3">
+                        <div class="text-3xl">🎉</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold mb-1">春節</h3>
+                            <p class="text-sm text-gray-700 mb-2">農曆新年，是華人最重要的傳統節日...</p>
+                            <div class="flex gap-2 flex-wrap mb-2">
+                                <span class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">貼春聯</span>
+                                <span class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">包餃子</span>
+                                <span class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">發紅包</span>
+                            </div>
+                            <button onclick="startCulturalChat('春節')" class="glass-button rounded-lg px-3 py-1 text-xs">
+                                💬 開始聊聊這個話題
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-4 mb-3 cultural-item" data-category="music">
+                    <div class="flex items-start gap-3">
+                        <div class="text-3xl">🎵</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold mb-1">台語老歌</h3>
+                            <p class="text-sm text-gray-700 mb-2">經典的台語歌曲，承載著許多人的青春回憶...</p>
+                            <div class="flex gap-2 flex-wrap mb-2">
+                                <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">望春風</span>
+                                <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">雨夜花</span>
+                                <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">月夜愁</span>
+                            </div>
+                            <button onclick="startCulturalChat('台語老歌')" class="glass-button rounded-lg px-3 py-1 text-xs">
+                                💬 開始聊聊這個話題
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-4 mb-3 cultural-item" data-category="story">
+                    <div class="flex items-start gap-3">
+                        <div class="text-3xl">📚</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold mb-1">台灣民間故事</h3>
+                            <p class="text-sm text-gray-700 mb-2">流傳在台灣的傳統民間故事，富含文化智慧...</p>
+                            <div class="flex gap-2 flex-wrap mb-2">
+                                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">虎姑婆</span>
+                                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">白蛇傳</span>
+                                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">廖添丁傳奇</span>
+                            </div>
+                            <button onclick="startCulturalChat('台灣民間故事')" class="glass-button rounded-lg px-3 py-1 text-xs">
+                                💬 開始聊聊這個話題
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emotion Tracking Page -->
+        <div id="emotions" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <h1 class="text-xl font-bold gradient-text mb-2">情緒追蹤</h1>
+                <p class="text-sm text-gray-600">了解情緒變化，促進心理健康</p>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="glass-card rounded-xl p-3 text-center">
+                    <div class="text-2xl mb-1">😊</div>
+                    <div class="text-sm font-bold">開心</div>
+                    <div class="text-xs text-gray-600">最常見情緒</div>
+                </div>
+                <div class="glass-card rounded-xl p-3 text-center">
+                    <div class="text-2xl mb-1">📈</div>
+                    <div class="text-sm font-bold">+15%</div>
+                    <div class="text-xs text-gray-600">本週改善</div>
+                </div>
+            </div>
+
+            <!-- Weekly Trend -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">本週心情趨勢</h2>
+                <canvas id="emotionChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Emotion Distribution -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">情緒分布</h2>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">😊</span>
+                        <span class="text-sm w-12">開心</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-end pr-2" style="width: 34%">
+                                <span class="text-white text-xs font-semibold">34%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">😌</span>
+                        <span class="text-sm w-12">平靜</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-end pr-2" style="width: 23%">
+                                <span class="text-white text-xs font-semibold">23%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">🥺</span>
+                        <span class="text-sm w-12">懷舊</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-end pr-2" style="width: 17%">
+                                <span class="text-white text-xs font-semibold">17%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">洞察與建議</h2>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-start gap-2">
+                        <span class="text-green-500">•</span>
+                        <span>您本週的整體情緒狀態良好</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-green-500">•</span>
+                        <span>建議繼續保持規律的對話習慣</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-green-500">•</span>
+                        <span>懷舊情緒有助於記憶回顧</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-card rounded-t-3xl border-b-0 z-50">
+        <div class="flex justify-around items-center py-2">
+            <button onclick="navigateTo('dashboard')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="dashboard">
+                <div class="text-lg">🏠</div>
+                <span class="text-xs">首頁</span>
+            </button>
+            <button onclick="navigateTo('companion')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="companion">
+                <div class="text-lg">🤖</div>
+                <span class="text-xs">AI陪伴</span>
+            </button>
+            <button onclick="navigateTo('memories')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="memories">
+                <div class="text-lg">📖</div>
+                <span class="text-xs">記憶</span>
+            </button>
+            <button onclick="navigateTo('family')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="family">
+                <div class="text-lg">👨‍👩‍👧‍👦</div>
+                <span class="text-xs">家人</span>
+            </button>
+            <button onclick="navigateTo('culture')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="culture">
+                <div class="text-lg">🏮</div>
+                <span class="text-xs">文化</span>
+            </button>
+            <button onclick="navigateTo('emotions')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="emotions">
+                <div class="text-lg">📊</div>
+                <span class="text-xs">情緒</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // Global state
+        let isRecording = false;
+        let conversations = [];
+        let memories = [
+            {
+                id: 1,
+                title: '中秋節家族聚餐',
+                content: '昨天是中秋節，全家人聚在一起吃月餅、賞月。孫子們很開心，我們一起唱歌、聊天到很晚。',
+                type: 'festival',
+                mood: 'happy',
+                date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+                shared: true
+            }
+        ];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateTime();
+            initializeEmotionChart();
+            updateCounts();
+            setInterval(updateDateTime, 60000); // Update every minute
+        });
+
+        // Navigation
+        function navigateTo(page) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected page
+            document.getElementById(page).classList.add('active');
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+        }
+
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+            };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('zh-TW', options);
+            
+            // Update timezone times
+            const vancouverTime = new Intl.DateTimeFormat('zh-TW', {
+                timeZone: 'America/Vancouver',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(now);
+            
+            const taipeiTime = new Intl.DateTimeFormat('zh-TW', {
+                timeZone: 'Asia/Taipei',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(now);
+            
+            if (document.getElementById('vancouverTime')) {
+                document.getElementById('vancouverTime').textContent = vancouverTime;
+            }
+            if (document.getElementById('taipeiTime')) {
+                document.getElementById('taipeiTime').textContent = taipeiTime;
+            }
+        }
+
+        // Update counts
+        function updateCounts() {
+            document.getElementById('todayConversations').textContent = conversations.length;
+            document.getElementById('todayMemories').textContent = memories.filter(m => {
+                const today = new Date();
+                const memoryDate = new Date(m.date);
+                return memoryDate.toDateString() === today.toDateString();
+            }).length;
+        }
+
+        // Toggle reminder
+        function toggleReminder(checkbox) {
+            if (checkbox.checked) {
+                checkbox.parentElement.style.opacity = '0.6';
+                setTimeout(() => {
+                    alert('提醒已完成！👍');
+                }, 300);
+            } else {
+                checkbox.parentElement.style.opacity = '1';
+            }
+        }
+
+        // AI Companion functions
+        function startActivity(type) {
+            const activities = {
+                music: '讓我們來聽一些懷舊的歌曲吧！您想聽台語老歌還是國語經典呢？',
+                photos: '看照片是回憶美好時光的好方法。您有什麼特別的照片想分享嗎？',
+                stories: '我知道很多有趣的節慶故事。您想聽哪個節日的故事呢？',
+                meditation: '讓我們一起放鬆心情。請深呼吸，感受當下的寧靜...'
+            };
+            
+            addMessage('小雨', activities[type]);
+        }
+
+        function toggleRecording() {
+            const recordBtn = document.getElementById('recordBtn');
+            const recordingStatus = document.getElementById('recordingStatus');
+            
+            if (!isRecording) {
+                // Start recording
+                isRecording = true;
+                recordBtn.classList.add('recording');
+                recordBtn.innerHTML = '<div class="text-2xl">🔴</div>';
+                recordingStatus.classList.remove('hidden');
+                recordingStatus.textContent = '正在錄音中...';
+                
+                // Simulate recording for 3 seconds
+                setTimeout(() => {
+                    stopRecording();
+                }, 3000);
+            } else {
+                stopRecording();
+            }
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            const recordBtn = document.getElementById('recordBtn');
+            const recordingStatus = document.getElementById('recordingStatus');
+            
+            recordBtn.classList.remove('recording');
+            recordBtn.innerHTML = '<div class="text-2xl">🎤</div>';
+            recordingStatus.classList.add('hidden');
+            
+            // Simulate voice recognition
+            const mockTranscripts = [
+                '今天天氣真好，讓我想起年輕時的春天',
+                '我好想念我的家人',
+                '可以播放一些老歌給我聽嗎？',
+                '我記得小時候過年的情景'
+            ];
+            
+            const transcript = mockTranscripts[Math.floor(Math.random() * mockTranscripts.length)];
+            document.getElementById('textInput').value = transcript;
+            
+            setTimeout(() => {
+                sendMessage();
+            }, 1000);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('textInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage('您', message, true);
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const responses = [
+                    '這真是美好的回憶呢！春天的確是個充滿希望的季節。您最喜歡春天的什麼呢？',
+                    '家人的陪伴總是最溫暖的。要不要跟我分享一些和家人的美好回憶？',
+                    '當然可以！我來為您播放一些經典老歌。您有特別喜歡的歌手嗎？',
+                    '過年真是充滿歡樂的時光！您還記得最喜歡的年菜是什麼嗎？'
+                ];
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                addMessage('小雨', response);
+            }, 1500);
+        }
+
+        function addMessage(sender, message, isUser = false) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message mb-3';
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+            
+            if (isUser) {
+                messageDiv.innerHTML = `
+                    <div class="flex justify-end">
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl px-3 py-2 mb-1 max-w-xs">
+                            <p class="text-sm">${message}</p>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-500 text-right">您 • ${timeString}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="bg-white/50 rounded-xl p-3 mb-1">
+                        <p class="text-sm">${message}</p>
+                    </div>
+                    <div class="text-xs text-gray-500">${sender} • ${timeString}</div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            conversations.push({ sender, message, time: now, isUser });
+            updateCounts();
+        }
+
+        // Memory Journal functions
+        function showAddMemoryForm() {
+            document.getElementById('addMemoryForm').classList.remove('hidden');
+        }
+
+        function hideAddMemoryForm() {
+            document.getElementById('addMemoryForm').classList.add('hidden');
+            // Clear form
+            document.getElementById('memoryTitle').value = '';
+            document.getElementById('memoryContent').value = '';
+            document.getElementById('memoryType').selectedIndex = 0;
+            document.getElementById('memoryMood').selectedIndex = 0;
+        }
+
+        function saveMemory() {
+            const title = document.getElementById('memoryTitle').value.trim();
+            const content = document.getElementById('memoryContent').value.trim();
+            const type = document.getElementById('memoryType').value;
+            const mood = document.getElementById('memoryMood').value;
+            
+            if (!title || !content) {
+                alert('請填寫標題和內容！');
+                return;
+            }
+            
+            const memory = {
+                id: memories.length + 1,
+                title,
+                content,
+                type,
+                mood,
+                date: new Date(),
+                shared: false
+            };
+            
+            memories.unshift(memory);
+            renderMemories();
+            hideAddMemoryForm();
+            updateCounts();
+            
+            alert('回憶已儲存！💝');
+        }
+
+        function renderMemories() {
+            const memoryList = document.getElementById('memoryList');
+            const existingMemories = memoryList.querySelectorAll('.glass-card');
+            
+            // Keep the first memory (example) and add new ones
+            memories.slice(0, -1).forEach(memory => {
+                const typeEmojis = {
+                    daily_life: '📅',
+                    family: '👨‍👩‍👧‍👦',
+                    travel: '✈️',
+                    food: '🍽️',
+                    festival: '🎉',
+                    childhood: '👶'
+                };
+                
+                const moodEmojis = {
+                    happy: '😊',
+                    nostalgic: '🥺',
+                    peaceful: '😌',
+                    excited: '🤗',
+                    grateful: '🙏',
+                    proud: '💪'
+                };
+                
+                const memoryDiv = document.createElement('div');
+                memoryDiv.className = 'glass-card rounded-2xl p-4 mb-3';
+                memoryDiv.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="text-2xl">${typeEmojis[memory.type]}</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold mb-1">${memory.title}</h3>
+                            <p class="text-sm text-gray-700 mb-2">${memory.content.substring(0, 80)}...</p>
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span>${moodEmojis[memory.mood]} ${getMoodText(memory.mood)}</span>
+                                <span>•</span>
+                                <span>${getRelativeTime(memory.date)}</span>
+                                ${memory.shared ? '<span>•</span><span class="text-green-600">已分享</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                memoryList.insertBefore(memoryDiv, memoryList.firstChild);
+            });
+        }
+
+        function getMoodText(mood) {
+            const moodTexts = {
+                happy: '開心',
+                nostalgic: '懷念',
+                peaceful: '平靜',
+                excited: '興奮',
+                grateful: '感恩',
+                proud: '驕傲'
+            };
+            return moodTexts[mood];
+        }
+
+        function getRelativeTime(date) {
+            const now = new Date();
+            const diff = Math.floor((now - date) / (24 * 60 * 60 * 1000));
+            
+            if (diff === 0) return '今天';
+            if (diff === 1) return '昨天';
+            if (diff < 7) return `${diff} 天前`;
+            return date.toLocaleDateString('zh-TW');
+        }
+
+        // Family Connection functions
+        function shareDailySummary() {
+            alert('今日摘要已分享給家人！📤\n\nDavid 和美玲會收到您今天的活動摘要，包含對話記錄和心情狀態。');
+        }
+
+        // Cultural Content functions
+        function filterCulture(category) {
+            // Update active button
+            document.querySelectorAll('[data-category]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-category="${category}"]`).classList.add('active');
+            
+            // Filter content
+            document.querySelectorAll('.cultural-item').forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function startCulturalChat(topic) {
+            navigateTo('companion');
+            setTimeout(() => {
+                addMessage('小雨', `讓我們來聊聊${topic}吧！這是很有意思的話題呢！您有什麼相關的回憶想分享嗎？`);
+            }, 500);
+        }
+
+        // Emotion Tracking functions
+        function initializeEmotionChart() {
+            const ctx = document.getElementById('emotionChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['週一', '週二', '週三', '週四', '週五', '週六', '週日'],
+                    datasets: [{
+                        label: '心情分數',
+                        data: [4, 3, 3, 4, 5, 3, 4],
+                        backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            if (btn.dataset.page === 'dashboard') {
+                btn.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
