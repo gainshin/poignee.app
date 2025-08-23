@@ -134,6 +134,185 @@ src/
 - 保持狀態結構扁平化
 - 避免深層嵌套的狀態更新
 
+## AIPET 應對策略
+
+針對台灣即將實施的《AI基本法》(AIPET - AI Personal Data Protection and Ethics Technology)，Poignée 制定了完整的合規應對方案：
+
+### 🛡️ 個人資料保護 (Personal Data Protection)
+
+#### 資料分類與處理
+- **敏感醫療資料**：失智症相關健康資訊、用藥記錄、行為模式
+  - 採用端對端加密 (E2E Encryption)
+  - 本地化儲存優先，最小化雲端傳輸
+  - 符合《個人資料保護法》特種個人資料處理規範
+
+- **一般個人資料**：姓名、聯絡方式、家庭成員資訊
+  - 實施資料最小化原則 (Data Minimization)
+  - 明確告知資料蒐集目的與使用範圍
+  - 提供資料修正、刪除權限
+
+#### 同意機制設計
+```typescript
+interface ConsentManager {
+  medicalData: boolean;      // 醫療資料處理同意
+  familySharing: boolean;    // 家庭分享功能同意
+  aiAnalysis: boolean;       // AI分析處理同意
+  dataRetention: string;     // 資料保存期限選擇
+  thirdPartySharing: boolean; // 第三方分享同意
+}
+```
+
+### 🤖 AI 演算法透明度 (Algorithm Transparency)
+
+#### 演算法說明機制
+- **情緒分析模型**：
+  - 提供演算法決策邏輯說明
+  - 定期發布模型效能報告
+  - 開放演算法偏見檢測結果
+
+- **記憶喚醒推薦**：
+  - 解釋推薦內容選擇原因
+  - 允許使用者調整推薦參數
+  - 提供演算法影響評估報告
+
+#### 可解釋AI實作
+```javascript
+// AI決策解釋功能
+function explainRecommendation(memoryId, factors) {
+  return {
+    decision: "推薦此記憶內容",
+    reasoning: [
+      "基於您最近的情緒狀態分析",
+      "與家庭成員互動頻率考量",
+      "相似回憶的正面回饋記錄"
+    ],
+    confidence: 0.85,
+    alternativeOptions: [...],
+    userControl: "可在設定中調整推薦偏好"
+  };
+}
+```
+
+### ⚖️ 演算法倫理 (Algorithmic Ethics)
+
+#### 偏見消除措施
+- **文化多樣性**：
+  - 訓練資料涵蓋多元文化背景
+  - 定期檢測文化偏見指標
+  - 建立文化適應性評估機制
+
+- **年齡公平性**：
+  - 避免年齡歧視的語言模式
+  - 確保不同年齡層使用者體驗公平
+  - 建立跨世代溝通橋樑
+
+#### 倫理審查機制
+```yaml
+# 倫理審查檢查清單
+ethics_checklist:
+  dignity_preservation: true    # 尊嚴維護
+  non_discrimination: true      # 無歧視原則
+  beneficence: true            # 有益性原則
+  autonomy_respect: true       # 自主性尊重
+  justice: true               # 公正性原則
+  transparency: true          # 透明度原則
+```
+
+### 🔐 技術實作規範 (Technical Implementation)
+
+#### 資料安全架構
+```mermaid
+graph TD
+    A[使用者輸入] --> B[本地加密]
+    B --> C[安全傳輸層]
+    C --> D[伺服器端處理]
+    D --> E[加密儲存]
+    E --> F[存取控制]
+    F --> G[稽核記錄]
+```
+
+#### 隱私保護技術
+- **聯邦學習** (Federated Learning)：AI模型訓練不離開本地設備
+- **差分隱私** (Differential Privacy)：統計分析時保護個人隱私
+- **同態加密** (Homomorphic Encryption)：加密狀態下進行計算
+- **零知識證明** (Zero-Knowledge Proof)：驗證身份而不洩露資訊
+
+### 📋 合規監控機制 (Compliance Monitoring)
+
+#### 自動化合規檢測
+```python
+class ComplianceMonitor:
+    def __init__(self):
+        self.checks = [
+            self.check_data_minimization,
+            self.check_consent_validity,
+            self.check_algorithm_fairness,
+            self.check_security_measures
+        ]
+    
+    def daily_compliance_audit(self):
+        results = []
+        for check in self.checks:
+            result = check()
+            results.append(result)
+            if not result.passed:
+                self.trigger_alert(result)
+        return results
+```
+
+#### 定期合規報告
+- **月度隱私影響評估**：評估新功能對隱私的影響
+- **季度演算法公平性稽核**：檢視AI決策的公平性
+- **年度倫理審查**：全面檢視產品倫理合規狀況
+
+### 📖 使用者權利保障 (User Rights Protection)
+
+#### 資料主體權利實現
+- **資料攜帶權**：提供標準格式的資料匯出功能
+- **被遺忘權**：完整刪除使用者資料的能力
+- **資料修正權**：允許使用者修正錯誤資料
+- **處理限制權**：暫停特定資料處理活動
+
+#### 申訴處理機制
+```typescript
+interface GrievanceSystem {
+  submitComplaint: (issue: ComplianceIssue) => Promise<CaseId>;
+  trackStatus: (caseId: CaseId) => Promise<CaseStatus>;
+  escalateToRegulator: (caseId: CaseId) => Promise<void>;
+  provideFeedback: (caseId: CaseId, feedback: string) => Promise<void>;
+}
+```
+
+### 🎯 實施時程規劃 (Implementation Timeline)
+
+#### 第一階段 (2025 Q1-Q2)：基礎合規
+- [ ] 完成隱私政策更新
+- [ ] 實作基本同意管理機制
+- [ ] 建立資料分類與標記系統
+- [ ] 部署基礎加密措施
+
+#### 第二階段 (2025 Q3-Q4)：進階功能
+- [ ] 實作聯邦學習架構
+- [ ] 部署差分隱私技術
+- [ ] 建立演算法解釋系統
+- [ ] 完成倫理審查機制
+
+#### 第三階段 (2026 Q1)：持續優化
+- [ ] 自動化合規監控上線
+- [ ] 使用者權利自助服務平台
+- [ ] 第三方合規認證取得
+- [ ] 國際標準對接完成
+
+### 📞 AIPET 聯絡窗口
+
+**合規事務聯絡人**：gainshin@outlook.com
+**技術實作負責人**：Poignée Technical Team
+**法務諮詢窗口**：Legal Affairs Department
+
+---
+
+Poignée 承諾在AI創新的同時，嚴格遵守AIPET規範，確保使用者權益與社會責任的平衡發展。
+
 ## 未來擴展
 
 ### 計劃功能
@@ -162,12 +341,18 @@ src/
 
 ## 授權
 
-本專案採用 MIT 授權條款 - 詳見 LICENSE 文件
+本專案採用雙重授權模式：
+- **Poignée 社群授權條款**：個人和有限組織使用
+- **商業授權條款**：內部團隊部署和程式碼修改
+
+詳見 LICENSE 文件或聯絡 gainshin@outlook.com 洽談商業授權。
 
 ## 聯絡資訊
 
-專案維護者：Poignée Team
-Email: contact@poignee.app
+**專案維護者**：gainshin  
+**Email**：gainshin@outlook.com  
+**商業合作**：gainshin@outlook.com  
+**技術支援**：GitHub Issues
 
 ---
 
