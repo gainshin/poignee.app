@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poignée 伴阮 - 進階AI諮詢系統</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #fef7ff 0%, #fdf2f8 25%, #eff6ff 75%, #f0f9ff 100%);
+        }
+        .glass-card {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .glass-button {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+        .glass-button.active {
+            background: rgba(147, 51, 234, 0.3);
+            border-color: rgba(147, 51, 234, 0.5);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .floating-bg {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            mix-blend-mode: multiply;
+            filter: blur(40px);
+            opacity: 0.2;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .floating-bg:nth-child(1) {
+            background: #a855f7;
+            top: 2rem;
+            left: 1rem;
+        }
+        .floating-bg:nth-child(2) {
+            background: #ec4899;
+            top: 8rem;
+            right: 1rem;
+            animation-delay: 2s;
+        }
+        .floating-bg:nth-child(3) {
+            background: #3b82f6;
+            bottom: 8rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation-delay: 4s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(-15px) translateX(8px); }
+        }
+        .ai-chat-1on1 {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        }
+        .ai-chat-group {
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+        }
+        .message-user {
+            background: rgba(139, 92, 246, 0.2);
+            border-left: 4px solid #8b5cf6;
+        }
+        .message-ai {
+            background: rgba(236, 72, 153, 0.2);
+            border-left: 4px solid #ec4899;
+        }
+        .message-family {
+            background: rgba(6, 182, 212, 0.2);
+            border-left: 4px solid #06b6d4;
+        }
+        .notification-urgent {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .consultation-mode-toggle {
+            border-radius: 50px;
+            overflow: hidden;
+        }
+        .typing-indicator {
+            animation: typing 1.5s infinite;
+        }
+        @keyframes typing {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+        .family-member {
+            transition: all 0.3s ease;
+        }
+        .family-member:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .task-authorized {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+        }
+        .task-pending {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            color: white;
+        }
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Floating background elements -->
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <div class="glass-card rounded-3xl p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="text-4xl">🌧️</div>
+                    <div>
+                        <h1 class="text-2xl font-bold gradient-text">小雨 AI 諮詢中心</h1>
+                        <p class="text-sm text-gray-600">一對一專業諮詢 • 家庭群組協作</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="text-xs text-gray-500">線上人數</div>
+                    <div class="flex items-center gap-1">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div class="text-sm font-semibold">4人</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="glass-card rounded-2xl p-4 mb-6">
+            <div class="flex items-center justify-center">
+                <div class="consultation-mode-toggle glass-button flex rounded-full p-1">
+                    <button onclick="switchMode('personal')" 
+                            class="mode-btn px-6 py-2 rounded-full text-sm font-medium transition-all duration-300" 
+                            id="personalBtn">
+                        🤝 一對一諮詢
+                    </button>
+                    <button onclick="switchMode('group')" 
+                            class="mode-btn px-6 py-2 rounded-full text-sm font-medium transition-all duration-300" 
+                            id="groupBtn">
+                        👥 家庭群組
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Consultation Mode -->
+        <div id="personalMode" class="consultation-mode active">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Main Caregiver Profile -->
+                <div class="lg:col-span-1">
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="text-center mb-4">
+                            <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-white font-bold">
+                                陳
+                            </div>
+                            <h3 class="text-lg font-semibold">陳美玲</h3>
+                            <p class="text-sm text-gray-600">主要照顧者 • 王爺爺女兒</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+                                <h4 class="font-medium mb-2">照護經驗</h4>
+                                <div class="text-sm text-gray-600 space-y-1">
+                                    <p>• 照護時間：2年3個月</p>
+                                    <p>• 照護強度：全日照護</p>
+                                    <p>• 專業訓練：已完成基礎訓練</p>
+                                </div>
+                            </div>
+                            
+                            <div class="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
+                                <h4 class="font-medium mb-2">最近關注</h4>
+                                <div class="text-sm text-gray-600 space-y-1">
+                                    <p>• 夜間睡眠品質</p>
+                                    <p>• 駕駛安全評估</p>
+                                    <p>• 情緒波動管理</p>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
+                                <h4 class="font-medium mb-2">諮詢統計</h4>
+                                <div class="text-sm text-gray-600 space-y-1">
+                                    <p>• 本週諮詢：12次</p>
+                                    <p>• 平均回應時間：30秒</p>
+                                    <p>• 滿意度評分：4.8/5.0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal AI Chat -->
+                <div class="lg:col-span-2">
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="ai-chat-1on1 rounded-xl p-4 mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                    🌧️
+                                </div>
+                                <div class="text-white">
+                                    <h3 class="font-semibold">小雨專屬諮詢</h3>
+                                    <p class="text-xs opacity-90">針對您的照護需求提供個人化建議</p>
+                                </div>
+                                <div class="ml-auto">
+                                    <div class="text-xs text-white/80">線上</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-container space-y-3 mb-4" id="personalChat">
+                            <div class="message-ai p-3 rounded-xl">
+                                <div class="flex items-start gap-3">
+                                    <div class="text-lg">🌧️</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm">陳女士您好！我注意到您最近經常詢問關於王爺爺的駕駛安全問題。今天有什麼特別想討論的嗎？</p>
+                                        <div class="text-xs text-gray-500 mt-1">小雨 • 剛剛</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="message-user p-3 rounded-xl">
+                                <div class="text-sm">昨天爸爸開車出門買東西，但是繞了很久才回來，我很擔心他迷路了</div>
+                                <div class="text-xs text-gray-500 mt-1">您 • 1分鐘前</div>
+                            </div>
+
+                            <div class="message-ai p-3 rounded-xl">
+                                <div class="flex items-start gap-3">
+                                    <div class="text-lg">🌧️</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm">我理解您的擔心。根據GPS記錄，王爺爺昨天確實在熟悉路段多繞了15分鐘。這可能是空間導航能力的輕微變化。我建議：</p>
+                                        <div class="mt-2 text-sm space-y-1">
+                                            <p>🚗 <strong>即時措施：</strong>設定常用地點的預設路線</p>
+                                            <p>📱 <strong>技術協助：</strong>簡化CarPlay介面，增大字體</p>
+                                            <p>👨‍⚕️ <strong>專業評估：</strong>建議下次回診時提及此情況</p>
+                                            <p>👥 <strong>家人協助：</strong>可以安排陪同出門幾次</p>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-2">小雨 • 剛剛</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="typing-indicator message-ai p-3 rounded-xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-lg">🌧️</div>
+                                    <div class="flex gap-1">
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                    </div>
+                                    <div class="text-xs text-gray-500">小雨正在輸入...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <input type="text" 
+                                   placeholder="輸入您的問題或擔憂..." 
+                                   class="flex-1 glass-button rounded-lg px-4 py-2 text-sm"
+                                   id="personalInput"
+                                   onkeypress="if(event.key==='Enter') sendPersonalMessage()">
+                            <button onclick="sendPersonalMessage()" class="glass-button rounded-lg px-4 py-2 text-sm">
+                                發送
+                            </button>
+                        </div>
+
+                        <!-- Quick Actions for Personal Mode -->
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <button onclick="quickPersonalQuestion('sleep')" class="glass-button rounded-lg px-3 py-1 text-xs">
+                                😴 睡眠問題
+                            </button>
+                            <button onclick="quickPersonalQuestion('driving')" class="glass-button rounded-lg px-3 py-1 text-xs">
+                                🚗 駕駛安全
+                            </button>
+                            <button onclick="quickPersonalQuestion('behavior')" class="glass-button rounded-lg px-3 py-1 text-xs">
+                                🧠 行為變化
+                            </button>
+                            <button onclick="quickPersonalQuestion('emergency')" class="glass-button rounded-lg px-3 py-1 text-xs">
+                                🚨 緊急處理
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Group Consultation Mode -->
+        <div id="groupMode" class="consultation-mode">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Family Members Panel -->
+                <div class="lg:col-span-1">
+                    <div class="glass-card rounded-2xl p-4">
+                        <h3 class="text-lg font-semibold mb-4">👥 家庭成員</h3>
+                        
+                        <div class="space-y-3">
+                            <!-- Main Caregiver -->
+                            <div class="family-member glass-card rounded-xl p-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">陳</div>
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium">陳美玲</div>
+                                        <div class="text-xs text-gray-500">主照顧者</div>
+                                    </div>
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                </div>
+                                <div class="mt-2 text-xs text-gray-600">👑 管理員權限</div>
+                            </div>
+
+                            <!-- Family Member 2 -->
+                            <div class="family-member glass-card rounded-xl p-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">王</div>
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium">王志明</div>
+                                        <div class="text-xs text-gray-500">兒子</div>
+                                    </div>
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                </div>
+                            </div>
+
+                            <!-- Family Member 3 -->
+                            <div class="family-member glass-card rounded-xl p-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold">李</div>
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium">李小華</div>
+                                        <div class="text-xs text-gray-500">媳婦</div>
+                                    </div>
+                                    <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                </div>
+                            </div>
+
+                            <!-- Family Member 4 -->
+                            <div class="family-member glass-card rounded-xl p-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">張</div>
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium">張淑芬</div>
+                                        <div class="text-xs text-gray-500">看護</div>
+                                    </div>
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Family Notifications -->
+                        <div class="mt-6">
+                            <h4 class="text-sm font-semibold mb-3">📢 家庭通知</h4>
+                            <div class="space-y-2">
+                                <div class="notification-urgent rounded-lg p-2 text-xs">
+                                    <div class="font-medium text-red-700">🚨 緊急提醒</div>
+                                    <div class="text-red-600">王爺爺忘記吃晚餐藥物</div>
+                                    <div class="text-red-500 text-xs mt-1">5分鐘前</div>
+                                </div>
+                                
+                                <div class="glass-card rounded-lg p-2 text-xs">
+                                    <div class="font-medium">📅 明日提醒</div>
+                                    <div class="text-gray-600">復健科回診 14:30</div>
+                                    <div class="text-gray-500 text-xs mt-1">20分鐘前</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Chat -->
+                <div class="lg:col-span-2">
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="ai-chat-group rounded-xl p-4 mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                    🌧️
+                                </div>
+                                <div class="text-white">
+                                    <h3 class="font-semibold">家庭群組諮詢</h3>
+                                    <p class="text-xs opacity-90">協調照護事務 • 共享資訊 • 任務分配</p>
+                                </div>
+                                <div class="ml-auto text-xs text-white/80">4人線上</div>
+                            </div>
+                        </div>
+
+                        <div class="chat-container space-y-3 mb-4" id="groupChat">
+                            <div class="message-ai p-3 rounded-xl">
+                                <div class="flex items-start gap-3">
+                                    <div class="text-lg">🌧️</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm"><strong>小雨提醒：</strong>王爺爺今天的用藥時間即將到了（晚餐後30分鐘），目前負責人是陳美玲。</p>
+                                        <div class="text-xs text-gray-500 mt-1">系統通知 • 剛剛</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="message-family p-3 rounded-xl">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">王</div>
+                                    <div class="flex-1">
+                                        <div class="text-xs text-gray-500 mb-1">王志明</div>
+                                        <p class="text-sm">我今天晚上7點可以過去幫忙，小華妳那邊怎麼樣？</p>
+                                        <div class="text-xs text-gray-500 mt-1">3分鐘前</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="message-family p-3 rounded-xl">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold">李</div>
+                                    <div class="flex-1">
+                                        <div class="text-xs text-gray-500 mb-1">李小華</div>
+                                        <p class="text-sm">我今天要加班，可能9點後才能到。張看護應該在對吧？</p>
+                                        <div class="text-xs text-gray-500 mt-1">2分鐘前</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="message-ai p-3 rounded-xl">
+                                <div class="flex items-start gap-3">
+                                    <div class="text-lg">🌧️</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm">根據今日排班，張淑芬看護會在7-11點值班。我建議：</p>
+                                        <div class="mt-2 space-y-1 text-sm">
+                                            <p>📋 <strong>今晚安排：</strong></p>
+                                            <p class="ml-4">• 7:00 王志明到達協助</p>
+                                            <p class="ml-4">• 7:30 確認晚餐用藥</p>
+                                            <p class="ml-4">• 8:00 張看護接手夜班照護</p>
+                                            <p class="ml-4">• 9:00 李小華回家後可休息</p>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-2">小雨 • 剛剛</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <input type="text" 
+                                   placeholder="在家庭群組中發言..." 
+                                   class="flex-1 glass-button rounded-lg px-4 py-2 text-sm"
+                                   id="groupInput"
+                                   onkeypress="if(event.key==='Enter') sendGroupMessage()">
+                            <button onclick="sendGroupMessage()" class="glass-button rounded-lg px-4 py-2 text-sm">
+                                發送
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Authorization Panel -->
+                <div class="lg:col-span-1">
+                    <div class="glass-card rounded-2xl p-4">
+                        <h3 class="text-lg font-semibold mb-4">📝 任務分配</h3>
+                        
+                        <div class="space-y-3">
+                            <!-- Authorized Tasks -->
+                            <div class="space-y-2">
+                                <h4 class="text-sm font-medium text-gray-700">✅ 已授權任務</h4>
+                                
+                                <div class="task-authorized rounded-lg p-3">
+                                    <div class="text-xs font-medium mb-1">晚餐用藥提醒</div>
+                                    <div class="text-xs opacity-90">負責人：王志明</div>
+                                    <div class="text-xs opacity-80 mt-1">⏰ 19:30</div>
+                                </div>
+
+                                <div class="task-authorized rounded-lg p-3">
+                                    <div class="text-xs font-medium mb-1">血壓量測</div>
+                                    <div class="text-xs opacity-90">負責人：張淑芬</div>
+                                    <div class="text-xs opacity-80 mt-1">⏰ 20:00</div>
+                                </div>
+                            </div>
+
+                            <!-- Pending Tasks -->
+                            <div class="space-y-2">
+                                <h4 class="text-sm font-medium text-gray-700">⏳ 待授權任務</h4>
+                                
+                                <div class="task-pending rounded-lg p-3">
+                                    <div class="text-xs font-medium mb-1">明日復健接送</div>
+                                    <div class="text-xs opacity-90">需要指派負責人</div>
+                                    <button onclick="assignTask('rehab')" class="mt-2 text-xs bg-white/20 rounded px-2 py-1">
+                                        指派
+                                    </button>
+                                </div>
+
+                                <div class="task-pending rounded-lg p-3">
+                                    <div class="text-xs font-medium mb-1">週末外出陪伴</div>
+                                    <div class="text-xs opacity-90">建議家人輪流</div>
+                                    <button onclick="assignTask('weekend')" class="mt-2 text-xs bg-white/20 rounded px-2 py-1">
+                                        指派
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Task Creation -->
+                        <div class="mt-6">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">➕ 快速建立任務</h4>
+                            <div class="space-y-2">
+                                <button onclick="createQuickTask('medicine')" class="w-full glass-button rounded-lg p-2 text-xs text-left">
+                                    💊 用藥提醒
+                                </button>
+                                <button onclick="createQuickTask('appointment')" class="w-full glass-button rounded-lg p-2 text-xs text-left">
+                                    🏥 醫療預約
+                                </button>
+                                <button onclick="createQuickTask('activity')" class="w-full glass-button rounded-lg p-2 text-xs text-left">
+                                    🎯 活動安排
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Current consultation mode
+        let currentMode = 'personal';
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            switchMode('personal');
+            initializeAIPersonality();
+        });
+
+        // Switch between consultation modes
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update navigation buttons
+            const personalBtn = document.getElementById('personalBtn');
+            const groupBtn = document.getElementById('groupBtn');
+            
+            personalBtn.classList.remove('active');
+            groupBtn.classList.remove('active');
+            
+            if (mode === 'personal') {
+                personalBtn.classList.add('active');
+                document.getElementById('personalMode').classList.add('active');
+                document.getElementById('groupMode').classList.remove('active');
+            } else {
+                groupBtn.classList.add('active');
+                document.getElementById('groupMode').classList.add('active');
+                document.getElementById('personalMode').classList.remove('active');
+            }
+        }
+
+        // Personal consultation functions
+        function sendPersonalMessage() {
+            const input = document.getElementById('personalInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addPersonalMessage(message, true);
+                input.value = '';
+                
+                // Simulate AI response
+                setTimeout(() => {
+                    const response = generatePersonalAIResponse(message);
+                    addPersonalMessage(response, false);
+                }, 2000);
+            }
+        }
+
+        function addPersonalMessage(message, isUser = false) {
+            const chatContainer = document.getElementById('personalChat');
+            const messageDiv = document.createElement('div');
+            
+            if (isUser) {
+                messageDiv.className = 'message-user p-3 rounded-xl';
+                messageDiv.innerHTML = `
+                    <div class="text-sm">${message}</div>
+                    <div class="text-xs text-gray-500 mt-1">您 • 剛剛</div>
+                `;
+            } else {
+                messageDiv.className = 'message-ai p-3 rounded-xl';
+                messageDiv.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="text-lg">🌧️</div>
+                        <div class="flex-1">
+                            <p class="text-sm">${message}</p>
+                            <div class="text-xs text-gray-500 mt-1">小雨 • 剛剛</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Remove typing indicator if exists
+            const typingIndicator = chatContainer.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function generatePersonalAIResponse(message) {
+            const responses = {
+                'sleep': '關於睡眠問題，我觀察到王爺爺最近的睡眠模式有些變化。建議：\n\n🌙 **環境調整：** 保持房間安靜、適溫\n⏰ **作息規律：** 固定就寢和起床時間\n🚫 **避免刺激：** 睡前減少咖啡因和螢幕時間\n💊 **藥物檢視：** 與醫師討論是否需要調整用藥\n\n需要我幫您制定詳細的睡眠改善計劃嗎？',
+                
+                'driving': '駕駛安全是很重要的考量。根據最近的GPS數據分析：\n\n🚗 **能力評估：** 王爺爺在熟悉路線表現良好\n⚠️ **注意事項：** 複雜路況時需要更多時間\n📱 **技術協助：** 建議使用語音導航和大字體\n👥 **家人陪伴：** 新路線建議先有人陪同\n\n我可以協助您設定更詳細的駕駛安全監控系統。',
+                
+                'behavior': '行為變化需要仔細觀察和記錄：\n\n📊 **模式分析：** 我會持續監控並提供趨勢報告\n🧠 **認知評估：** 建議定期進行簡單的認知測試\n💝 **情感支持：** 保持耐心和理解很重要\n👨‍⚕️ **專業諮詢：** 顯著變化時應及時就醫\n\n您有注意到哪些具體的行為變化嗎？',
+                
+                'emergency': '緊急情況處理流程：\n\n🚨 **立即行動：** 確保王爺爺安全，必要時撥打119\n📞 **聯絡網絡：** 我會同時通知所有家庭成員\n🏥 **醫療資訊：** 準備好用藥清單和醫療紀錄\n📍 **位置追蹤：** GPS定位功能隨時可用\n\n我已經為您預設了緊急聯絡人順序和處理步驟。'
+            };
+
+            // Check for keywords and return appropriate response
+            for (const [key, response] of Object.entries(responses)) {
+                if (message.toLowerCase().includes(key) || 
+                    (key === 'sleep' && (message.includes('睡眠') || message.includes('失眠'))) ||
+                    (key === 'driving' && (message.includes('開車') || message.includes('駕駛'))) ||
+                    (key === 'behavior' && (message.includes('行為') || message.includes('情緒'))) ||
+                    (key === 'emergency' && (message.includes('緊急') || message.includes('危險')))) {
+                    return response;
+                }
+            }
+            
+            return `我理解您的擔憂。作為您的專屬AI助理，我建議我們可以：\n\n💭 **深度分析：** 讓我更詳細地了解具體情況\n📋 **個人化建議：** 根據王爺爺的狀況提供建議\n👥 **家庭協調：** 必要時協調其他家庭成員協助\n📊 **持續追蹤：** 我會持續關注並提供更新\n\n您能告訴我更多具體的情況嗎？這樣我能提供更精準的建議。`;
+        }
+
+        function quickPersonalQuestion(type) {
+            const questions = {
+                'sleep': '最近爸爸的睡眠品質怎麼樣？有什麼改善建議嗎？',
+                'driving': '關於爸爸的駕駛安全，我應該注意哪些警訊？',
+                'behavior': '如何判斷爸爸的行為變化是否需要專業協助？',
+                'emergency': '如果發生緊急狀況，我應該怎麼處理？'
+            };
+            
+            const input = document.getElementById('personalInput');
+            input.value = questions[type];
+            sendPersonalMessage();
+        }
+
+        // Group consultation functions
+        function sendGroupMessage() {
+            const input = document.getElementById('groupInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addGroupMessage(message, '陳', 'purple');
+                input.value = '';
+                
+                // Simulate AI response for group
+                setTimeout(() => {
+                    const response = generateGroupAIResponse(message);
+                    addGroupMessage(response, '🌧️', 'ai');
+                }, 2000);
+            }
+        }
+
+        function addGroupMessage(message, sender, color) {
+            const chatContainer = document.getElementById('groupChat');
+            const messageDiv = document.createElement('div');
+            
+            if (color === 'ai') {
+                messageDiv.className = 'message-ai p-3 rounded-xl';
+                messageDiv.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="text-lg">🌧️</div>
+                        <div class="flex-1">
+                            <p class="text-sm">${message}</p>
+                            <div class="text-xs text-gray-500 mt-1">小雨 • 剛剛</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageDiv.className = 'message-family p-3 rounded-xl';
+                messageDiv.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 bg-${color}-500 rounded-full flex items-center justify-center text-white text-xs font-bold">${sender}</div>
+                        <div class="flex-1">
+                            <div class="text-xs text-gray-500 mb-1">陳美玲</div>
+                            <p class="text-sm">${message}</p>
+                            <div class="text-xs text-gray-500 mt-1">剛剛</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function generateGroupAIResponse(message) {
+            return `感謝陳美玲的分享。我建議全家可以這樣分工：\n\n📋 **任務分配建議：**\n• 王志明：負責週間晚餐時段照護\n• 李小華：負責週末日間活動安排\n• 張淑芬：持續夜間專業照護\n• 陳美玲：統籌協調和醫療決策\n\n我已經將相關任務加入待授權清單，請主照顧者確認分配。\n\n有任何調整需求嗎？`;
+        }
+
+        // Task management functions
+        function assignTask(taskType) {
+            const tasks = {
+                'rehab': {
+                    name: '明日復健接送',
+                    options: ['王志明', '李小華', '張淑芬']
+                },
+                'weekend': {
+                    name: '週末外出陪伴',
+                    options: ['王志明', '李小華', '陳美玲']
+                }
+            };
+            
+            const task = tasks[taskType];
+            const assignee = prompt(`請選擇「${task.name}」的負責人：\n\n可選擇：${task.options.join('、')}`);
+            
+            if (assignee && task.options.includes(assignee)) {
+                alert(`✅ 任務已指派給 ${assignee}\n\n任務：${task.name}\n系統將自動發送通知給相關人員。`);
+                
+                // Add to group chat
+                setTimeout(() => {
+                    addGroupMessage(`📋 **任務指派通知**\n\n任務：${task.name}\n負責人：${assignee}\n指派者：陳美玲（主照顧者）\n\n請 ${assignee} 確認是否可以承接此任務。`, '🌧️', 'ai');
+                }, 1000);
+            }
+        }
+
+        function createQuickTask(taskType) {
+            const tasks = {
+                'medicine': '💊 用藥提醒任務',
+                'appointment': '🏥 醫療預約安排',
+                'activity': '🎯 日常活動規劃'
+            };
+            
+            const taskName = prompt(`建立 ${tasks[taskType]}：\n\n請輸入具體任務描述：`);
+            
+            if (taskName) {
+                alert(`✅ 新任務已建立\n\n任務：${taskName}\n分類：${tasks[taskType]}\n狀態：待指派負責人\n\n任務已加入待授權清單。`);
+            }
+        }
+
+        // AI personality initialization
+        function initializeAIPersonality() {
+            // Add startup message to personal chat
+            setTimeout(() => {
+                addPersonalMessage('陳女士，很高興見到您！我是小雨，您的專屬AI照護助理。我已經分析了王爷爷最近的狀況，有任何問題都可以隨時向我諮詢。今天想聊什麼呢？', false);
+            }, 1000);
+        }
+
+        // Auto-scroll chat containers
+        function autoScrollChats() {
+            const personalChat = document.getElementById('personalChat');
+            const groupChat = document.getElementById('groupChat');
+            
+            if (personalChat) personalChat.scrollTop = personalChat.scrollHeight;
+            if (groupChat) groupChat.scrollTop = groupChat.scrollHeight;
+        }
+
+        // Periodic updates simulation
+        setInterval(() => {
+            if (Math.random() > 0.7) { // 30% chance every 10 seconds
+                if (currentMode === 'group') {
+                    const updates = [
+                        '📊 王爺爺血壓量測完成：130/85 mmHg，數值正常。',
+                        '🚗 GPS提醒：王爺爺已安全抵達美廉社，購物進行中。',
+                        '💊 用藥提醒：晚餐後藥物已按時服用，記錄已更新。',
+                        '😊 情緒監測：王爺爺今日心情愉快，參與活動積極。'
+                    ];
+                    
+                    const randomUpdate = updates[Math.floor(Math.random() * updates.length)];
+                    addGroupMessage(randomUpdate, '🌧️', 'ai');
+                }
+            }
+        }, 10000);
+
+        // Initialize auto-scroll
+        setInterval(autoScrollChats, 1000);
+    </script>
+</body>
+</html>

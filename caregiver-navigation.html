@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poignée 伴阮 - 家庭照護助手 (含導航功能)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #fef7ff 0%, #fdf2f8 25%, #eff6ff 75%, #f0f9ff 100%);
+        }
+        .glass-card {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .glass-button {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+        .glass-button.active {
+            background: rgba(147, 51, 234, 0.3);
+            border-color: rgba(147, 51, 234, 0.5);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .alert-high { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+        .alert-medium { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3); }
+        .alert-low { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); }
+        .floating-bg {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            mix-blend-mode: multiply;
+            filter: blur(40px);
+            opacity: 0.2;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .floating-bg:nth-child(1) {
+            background: #a855f7;
+            top: 2rem;
+            left: 1rem;
+        }
+        .floating-bg:nth-child(2) {
+            background: #ec4899;
+            top: 8rem;
+            right: 1rem;
+            animation-delay: 2s;
+        }
+        .floating-bg:nth-child(3) {
+            background: #3b82f6;
+            bottom: 8rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation-delay: 4s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(-15px) translateX(8px); }
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .driving-status {
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            color: white;
+        }
+        .safe-zone { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); }
+        .warning-zone { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3); }
+        .danger-zone { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+    <!-- Floating Background Elements -->
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+
+    <!-- Main Container -->
+    <div class="relative z-10">
+        
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active p-4 space-y-4">
+            <!-- Header with Patient Info -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">照護中心</h1>
+                        <p class="text-sm text-gray-600">王爺爺的照護狀況</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500" id="currentTime"></div>
+                        <div class="text-xs text-gray-400">最後更新</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-white/20 rounded-xl">
+                    <div class="text-3xl">👴</div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold">王爺爺 (78歲)</h3>
+                        <p class="text-sm text-gray-600">輕度認知障礙 • 居家照護</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="w-2 h-2 bg-green-500 rounded-full pulse-animation"></div>
+                            <span class="text-xs text-green-600">狀態正常</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Driving Status Alert -->
+            <div id="drivingAlert" class="glass-card rounded-2xl p-4 driving-status hidden">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="text-3xl">🚗</div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-white">外出駕駛中</h3>
+                        <p class="text-sm text-blue-100">王爺爺正在使用預設路線前往美廉社</p>
+                    </div>
+                    <button onclick="showDrivingDetail()" class="glass-button rounded-lg px-3 py-1 text-xs text-white">
+                        查看詳情
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center text-sm">
+                    <div>
+                        <div class="font-bold text-white">15分鐘</div>
+                        <div class="text-xs text-blue-100">預計行程</div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-white">8分鐘</div>
+                        <div class="text-xs text-blue-100">已行駛</div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-white">正常</div>
+                        <div class="text-xs text-blue-100">路線狀況</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Alerts -->
+            <div id="alertsContainer">
+                <div class="glass-card rounded-2xl p-4 alert-medium">
+                    <div class="flex items-start gap-3">
+                        <div class="text-2xl">⚠️</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-orange-700">需要關注</h3>
+                            <p class="text-sm text-gray-700 mb-2">王爺爺今天下午似乎有些焦慮不安，提及找不到重要物品</p>
+                            <div class="flex gap-2">
+                                <button onclick="showAlertDetail('anxiety')" class="glass-button rounded-lg px-3 py-1 text-xs">查看詳情</button>
+                                <button onclick="dismissAlert('anxiety')" class="glass-button rounded-lg px-3 py-1 text-xs">標記處理</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Summary -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">今日概況</h2>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🚗</div>
+                        <div class="text-lg font-bold">2</div>
+                        <div class="text-xs text-gray-600">外出次數</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🗺️</div>
+                        <div class="text-lg font-bold">100%</div>
+                        <div class="text-xs text-gray-600">安全抵達</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">😊</div>
+                        <div class="text-sm font-bold">平靜</div>
+                        <div class="text-xs text-gray-600">整體情緒</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">💊</div>
+                        <div class="text-lg font-bold">3/3</div>
+                        <div class="text-xs text-gray-600">用藥完成</div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="navigateTo('navigation')" class="glass-button rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🚗</div>
+                        <div class="text-sm">導航設置</div>
+                    </button>
+                    <button onclick="askAIAssistant()" class="glass-button rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🤖</div>
+                        <div class="text-sm">諮詢小雨</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">最近活動</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-2 bg-white/20 rounded-lg">
+                        <div class="text-xl">🚗</div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">外出購物 - 美廉社</div>
+                            <div class="text-xs text-gray-600">14:30 • 順利抵達，停留25分鐘</div>
+                        </div>
+                        <div class="text-xs text-green-600">安全</div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2 bg-white/20 rounded-lg">
+                        <div class="text-xl">🍽️</div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">午餐用餐</div>
+                            <div class="text-xs text-gray-600">12:30 • 食慾良好，用餐完成</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2 bg-white/20 rounded-lg">
+                        <div class="text-xl">🚗</div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">外出看診 - 林醫師診所</div>
+                            <div class="text-xs text-gray-600">10:30 • 定期回診，一切正常</div>
+                        </div>
+                        <div class="text-xs text-green-600">安全</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation & Driving Safety Page -->
+        <div id="navigation" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🚗</div>
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">導航與駕駛安全</h1>
+                        <p class="text-sm text-gray-600">管理外出路線與CarPlay設置</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Driving Status -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">目前狀態</h2>
+                <div id="currentDrivingStatus" class="p-4 safe-zone rounded-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🏠</div>
+                            <div>
+                                <h3 class="font-semibold">在家中</h3>
+                                <p class="text-sm text-gray-600">最後定位：台北市大安區</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-green-700">安全</div>
+                            <div class="text-xs text-gray-500">15:45 更新</div>
+                        </div>
+                    </div>
+                    <button onclick="refreshLocation()" class="glass-button rounded-lg px-3 py-1 text-xs">
+                        🔄 重新整理位置
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preset Routes Management -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-lg font-semibold">預設路線</h2>
+                    <button onclick="addNewRoute()" class="glass-button rounded-lg px-3 py-1 text-xs">
+                        ➕ 新增路線
+                    </button>
+                </div>
+                <div class="space-y-3" id="presetRoutes">
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3">
+                                <div class="text-2xl">🏪</div>
+                                <div>
+                                    <h3 class="font-semibold">美廉社 - 大安店</h3>
+                                    <p class="text-sm text-gray-600">車程 8 分鐘 • 距離 2.3 公里</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editRoute('supermarket')" class="glass-button rounded-lg px-2 py-1 text-xs">編輯</button>
+                                <button onclick="activateRoute('supermarket')" class="glass-button rounded-lg px-2 py-1 text-xs bg-green-100">啟用</button>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            最後使用：今天 14:30 • 安全抵達 ✅
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3">
+                                <div class="text-2xl">🏥</div>
+                                <div>
+                                    <h3 class="font-semibold">林醫師診所</h3>
+                                    <p class="text-sm text-gray-600">車程 12 分鐘 • 距離 3.8 公里</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editRoute('clinic')" class="glass-button rounded-lg px-2 py-1 text-xs">編輯</button>
+                                <button onclick="activateRoute('clinic')" class="glass-button rounded-lg px-2 py-1 text-xs">啟用</button>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            最後使用：今天 10:30 • 安全抵達 ✅
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3">
+                                <div class="text-2xl">🏞️</div>
+                                <div>
+                                    <h3 class="font-semibold">大安森林公園</h3>
+                                    <p class="text-sm text-gray-600">車程 6 分鐘 • 距離 1.8 公里</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editRoute('park')" class="glass-button rounded-lg px-2 py-1 text-xs">編輯</button>
+                                <button onclick="activateRoute('park')" class="glass-button rounded-lg px-2 py-1 text-xs">啟用</button>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            最後使用：昨天 16:20 • 安全抵達 ✅
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CarPlay Interface Settings -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">CarPlay 介面設置</h2>
+                <div class="space-y-3">
+                    <div class="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                        <h4 class="font-medium mb-2">🚗 車載顯示設定</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between">
+                                <span>大字體模式</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>語音引導</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>簡化介面</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl">
+                        <h4 class="font-medium mb-2">🔊 語音設定</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between">
+                                <span>語音速度</span>
+                                <select class="glass-button rounded px-2 py-1 text-xs">
+                                    <option>緩慢</option>
+                                    <option selected>正常</option>
+                                    <option>快速</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>音量</span>
+                                <input type="range" min="1" max="10" value="7" class="w-20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl">
+                        <h4 class="font-medium mb-2">⚠️ 安全設定</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between">
+                                <span>偏離路線警告</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>緊急聯絡按鈕</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>自動回家提醒</span>
+                                <select class="glass-button rounded px-2 py-1 text-xs">
+                                    <option>30分鐘</option>
+                                    <option selected>1小時</option>
+                                    <option>2小時</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Zones -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">安全區域設定</h2>
+                <div class="space-y-3">
+                    <div class="p-3 safe-zone rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="text-2xl">🟢</div>
+                                <div>
+                                    <h4 class="font-medium">安全區域</h4>
+                                    <p class="text-xs text-gray-600">家附近 2 公里範圍</p>
+                                </div>
+                            </div>
+                            <button onclick="editSafeZone('safe')" class="glass-button rounded-lg px-2 py-1 text-xs">編輯</button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 warning-zone rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="text-2xl">🟡</div>
+                                <div>
+                                    <h4 class="font-medium">注意區域</h4>
+                                    <p class="text-xs text-gray-600">2-5 公里範圍，發送提醒</p>
+                                </div>
+                            </div>
+                            <button onclick="editSafeZone('warning')" class="glass-button rounded-lg px-2 py-1 text-xs">編輯</button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 danger-zone rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="text-2xl">🔴</div>
+                                <div>
+                                    <h4 class="font-medium">警戒區域</h4>
+                                    <p class="text-xs text-gray-600">超過 5 公里，立即通知</p>
+                                </div>
+                            </div>
+                            <button onclick="editSafeZone('danger')" class="glass-button rounded-lg px-2 py-1 text-xs">編輯</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Trips -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">最近行程記錄</h2>
+                <div class="space-y-3">
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3">
+                                <div class="text-xl">🏪</div>
+                                <div>
+                                    <h4 class="font-medium text-sm">前往美廉社</h4>
+                                    <p class="text-xs text-gray-600">今天 14:30 → 15:05</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs text-green-600">✅ 安全抵達</div>
+                                <div class="text-xs text-gray-500">行程 35分鐘</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            路線：按預設路線 • 無偏離 • 停留時間正常
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3">
+                                <div class="text-xl">🏥</div>
+                                <div>
+                                    <h4 class="font-medium text-sm">林醫師診所</h4>
+                                    <p class="text-xs text-gray-600">今天 10:30 → 11:45</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs text-green-600">✅ 安全抵達</div>
+                                <div class="text-xs text-gray-500">行程 1小時15分</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            路線：按預設路線 • 無偏離 • 定期回診
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Assistant Page -->
+        <div id="assistant" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🤖</div>
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">AI 助理 - 小雨</h1>
+                        <p class="text-sm text-gray-600">專業照護諮詢與建議</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Questions -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">常見問題</h2>
+                <div class="space-y-2">
+                    <button onclick="askQuestion('driving')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="font-medium text-sm">失智患者駕駛安全評估</div>
+                        <div class="text-xs text-gray-600 mt-1">何時該限制駕駛？如何安全過渡？</div>
+                    </button>
+                    <button onclick="askQuestion('navigation')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="font-medium text-sm">導航系統設置建議</div>
+                        <div class="text-xs text-gray-600 mt-1">如何設定適合失智患者的導航介面</div>
+                    </button>
+                    <button onclick="askQuestion('behavior')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="font-medium text-sm">如何應對重複性行為？</div>
+                        <div class="text-xs text-gray-600 mt-1">處理失智患者的重複問題和行為</div>
+                    </button>
+                    <button onclick="askQuestion('communication')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="font-medium text-sm">有效溝通技巧</div>
+                        <div class="text-xs text-gray-600 mt-1">與失智患者溝通的最佳方式</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Interface -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">諮詢對話</h2>
+                <div class="h-48 overflow-y-auto mb-3 space-y-3" id="aiChatMessages">
+                    <div class="bg-white/50 rounded-xl p-3">
+                        <p class="text-sm">您好！我是小雨，專門協助失智症家庭照護。我可以為您提供駕駛安全、導航設置、行為管理等各方面的專業建議。有任何問題都可以問我！</p>
+                        <div class="text-xs text-gray-500 mt-1">小雨 • 智能助理</div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="aiQuestion" placeholder="輸入您的問題..." class="flex-1 glass-button rounded-xl px-3 py-2 text-sm">
+                    <button onclick="sendAIMessage()" class="glass-button rounded-xl px-4 py-2 text-sm">
+                        發送
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Page -->
+        <div id="monitoring" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <h1 class="text-xl font-bold gradient-text mb-2">健康監測</h1>
+                <p class="text-sm text-gray-600">王爺爺的健康狀況追蹤</p>
+            </div>
+
+            <!-- Vital Signs -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">生理指標</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">❤️</div>
+                        <div class="text-lg font-bold">78</div>
+                        <div class="text-xs text-gray-600">心率 (bpm)</div>
+                        <div class="text-xs text-green-600">正常</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🩺</div>
+                        <div class="text-sm font-bold">125/80</div>
+                        <div class="text-xs text-gray-600">血壓 (mmHg)</div>
+                        <div class="text-xs text-green-600">正常</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🌡️</div>
+                        <div class="text-lg font-bold">36.8°C</div>
+                        <div class="text-xs text-gray-600">體溫</div>
+                        <div class="text-xs text-green-600">正常</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">😴</div>
+                        <div class="text-lg font-bold">7.2h</div>
+                        <div class="text-xs text-gray-600">昨晚睡眠</div>
+                        <div class="text-xs text-green-600">充足</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Driving Safety Metrics -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">駕駛安全指標</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🚗</div>
+                        <div class="text-lg font-bold">100%</div>
+                        <div class="text-xs text-gray-600">安全抵達率</div>
+                        <div class="text-xs text-green-600">本週</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🛣️</div>
+                        <div class="text-lg font-bold">0</div>
+                        <div class="text-xs text-gray-600">路線偏離次數</div>
+                        <div class="text-xs text-green-600">本週</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">⏱️</div>
+                        <div class="text-lg font-bold">45分鐘</div>
+                        <div class="text-xs text-gray-600">平均外出時間</div>
+                        <div class="text-xs text-blue-600">本週</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">📍</div>
+                        <div class="text-lg font-bold">5</div>
+                        <div class="text-xs text-gray-600">使用預設路線</div>
+                        <div class="text-xs text-blue-600">本週</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Behavioral Trends -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">行為趨勢</h2>
+                <canvas id="behaviorChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Resources Page -->
+        <div id="resources" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <h1 class="text-xl font-bold gradient-text mb-2">照護資源</h1>
+                <p class="text-sm text-gray-600">生活輔助材料與照護指引</p>
+            </div>
+
+            <!-- Emergency Contacts -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">緊急聯絡</h2>
+                <div class="space-y-2">
+                    <button onclick="emergencyCall('doctor')" class="w-full glass-button rounded-xl p-3 flex items-center gap-3">
+                        <div class="text-2xl">👨‍⚕️</div>
+                        <div class="text-left flex-1">
+                            <div class="font-medium text-sm">林醫師</div>
+                            <div class="text-xs text-gray-600">神經內科 • (02) 2345-6789</div>
+                        </div>
+                        <div class="text-xl">📞</div>
+                    </button>
+                    <button onclick="emergencyCall('police')" class="w-full glass-button rounded-xl p-3 flex items-center gap-3">
+                        <div class="text-2xl">👮‍♂️</div>
+                        <div class="text-left flex-1">
+                            <div class="font-medium text-sm">大安分局</div>
+                            <div class="text-xs text-gray-600">走失協尋 • (02) 2700-4500</div>
+                        </div>
+                        <div class="text-xl">📞</div>
+                    </button>
+                    <button onclick="emergencyCall('roadside')" class="w-full glass-button rounded-xl p-3 flex items-center gap-3">
+                        <div class="text-2xl">🚗</div>
+                        <div class="text-left flex-1">
+                            <div class="font-medium text-sm">道路救援</div>
+                            <div class="text-xs text-gray-600">車輛故障 • 0800-123-456</div>
+                        </div>
+                        <div class="text-xl">📞</div>
+                    </button>
+                    <button onclick="emergencyCall('emergency')" class="w-full glass-button rounded-xl p-3 flex items-center gap-3 bg-red-100/50">
+                        <div class="text-2xl">🚨</div>
+                        <div class="text-left flex-1">
+                            <div class="font-medium text-sm text-red-700">緊急救護</div>
+                            <div class="text-xs text-red-600">119 急救專線</div>
+                        </div>
+                        <div class="text-xl">📞</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Driving Safety Materials -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">駕駛安全資料</h2>
+                <div class="space-y-3">
+                    <button onclick="showMaterial('driving-assessment')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">📋</div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">駕駛能力評估表</div>
+                                <div class="text-xs text-gray-600">定期評估駕駛安全性</div>
+                            </div>
+                            <div class="text-lg">▶️</div>
+                        </div>
+                    </button>
+                    <button onclick="showMaterial('car-preparation')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🔧</div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">車輛準備清單</div>
+                                <div class="text-xs text-gray-600">外出前車輛安全檢查</div>
+                            </div>
+                            <div class="text-lg">▶️</div>
+                        </div>
+                    </button>
+                    <button onclick="showMaterial('emergency-kit')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🎒</div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">車用緊急包</div>
+                                <div class="text-xs text-gray-600">必備緊急用品清單</div>
+                            </div>
+                            <div class="text-lg">▶️</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Family Communication Page -->
+        <div id="family" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <h1 class="text-xl font-bold gradient-text mb-2">家庭聯繫</h1>
+                <p class="text-sm text-gray-600">與其他家庭成員協調照護</p>
+            </div>
+
+            <!-- Family Members -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">照護團隊</h2>
+                <div class="space-y-3">
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h3 class="font-semibold">David Wang (兒子)</h3>
+                                <p class="text-sm text-gray-600">主要照護者 • 溫哥華</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">溫哥華時間</div>
+                                <div class="font-semibold" id="vancouverTime2">03:30</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="glass-button rounded-lg px-3 py-1 text-xs">📞 通話</button>
+                            <button onclick="sendUpdate('david')" class="glass-button rounded-lg px-3 py-1 text-xs">📤 發送更新</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Report -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">今日報告</h2>
+                <div class="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl mb-3">
+                    <h4 class="font-medium mb-2">📋 照護摘要</h4>
+                    <div class="text-sm space-y-1">
+                        <p>• 外出狀況：2次外出，全部安全抵達</p>
+                        <p>• 駕駛表現：按預設路線，無偏離行為</p>
+                        <p>• 情緒狀態：整體平穩，下午有輕微焦慮</p>
+                        <p>• 生理狀況：各項指標正常，食慾良好</p>
+                        <p>• 用藥情況：按時服藥，無不良反應</p>
+                    </div>
+                </div>
+                <button onclick="shareReport()" class="w-full glass-button rounded-xl py-2 text-sm">
+                    📤 分享今日報告給家庭成員
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-card rounded-t-3xl border-b-0 z-50">
+        <div class="flex justify-around items-center py-2">
+            <button onclick="navigateTo('dashboard')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg active" data-page="dashboard">
+                <div class="text-lg">🏠</div>
+                <span class="text-xs">總覽</span>
+            </button>
+            <button onclick="navigateTo('navigation')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="navigation">
+                <div class="text-lg">🚗</div>
+                <span class="text-xs">導航</span>
+            </button>
+            <button onclick="navigateTo('assistant')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="assistant">
+                <div class="text-lg">🤖</div>
+                <span class="text-xs">AI諮詢</span>
+            </button>
+            <button onclick="navigateTo('monitoring')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="monitoring">
+                <div class="text-lg">📊</div>
+                <span class="text-xs">監測</span>
+            </button>
+            <button onclick="navigateTo('resources')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="resources">
+                <div class="text-lg">📋</div>
+                <span class="text-xs">資源</span>
+            </button>
+            <button onclick="navigateTo('family')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="family">
+                <div class="text-lg">👥</div>
+                <span class="text-xs">家庭</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Modal for Material Details -->
+    <div id="materialModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card rounded-2xl p-6 max-w-md w-full max-h-96 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-lg font-semibold"></h3>
+                <button onclick="closeModal()" class="glass-button rounded-full p-2 text-lg">✕</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateTime();
+            initializeBehaviorChart();
+            setInterval(updateDateTime, 60000);
+            
+            // Simulate driving status update
+            setTimeout(() => {
+                simulateDrivingStatus();
+            }, 5000);
+        });
+
+        // Navigation
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(page).classList.add('active');
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+        }
+
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('zh-TW', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            // Update timezone times
+            const vancouverTime = new Intl.DateTimeFormat('zh-TW', {
+                timeZone: 'America/Vancouver',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(now);
+            
+            if (document.getElementById('vancouverTime2')) {
+                document.getElementById('vancouverTime2').textContent = vancouverTime;
+            }
+        }
+
+        // Driving status simulation
+        function simulateDrivingStatus() {
+            // Randomly show driving alert
+            if (Math.random() > 0.7) {
+                document.getElementById('drivingAlert').classList.remove('hidden');
+                updateDrivingStatus('driving');
+            }
+        }
+
+        function updateDrivingStatus(status) {
+            const statusElement = document.getElementById('currentDrivingStatus');
+            
+            if (status === 'driving') {
+                statusElement.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🚗</div>
+                            <div>
+                                <h3 class="font-semibold">駕駛中</h3>
+                                <p class="text-sm text-gray-600">前往美廉社 - 預計15分鐘</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-blue-700">移動中</div>
+                            <div class="text-xs text-gray-500">${new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })} 更新</div>
+                        </div>
+                    </div>
+                    <button onclick="showDrivingDetail()" class="glass-button rounded-lg px-3 py-1 text-xs">
+                        📍 即時位置
+                    </button>
+                `;
+                statusElement.className = 'p-4 warning-zone rounded-xl';
+            }
+        }
+
+        // Navigation functions
+        function showDrivingDetail() {
+            alert('📍 即時位置資訊：\n\n位置：台北市大安區建國南路\n距離目的地：1.2公里\n預計抵達：7分鐘\n\n狀態：\n✅ 按預設路線行駛\n✅ 車速正常\n✅ 無偏離行為');
+        }
+
+        function addNewRoute() {
+            const routeName = prompt('請輸入路線名稱（例如：全聯福利中心）：');
+            if (routeName) {
+                alert(`新路線「${routeName}」已添加！\n\n接下來請：\n1. 在手機地圖中設定目的地\n2. 確認最佳路線\n3. 儲存為預設路線\n4. 設定CarPlay顯示選項`);
+            }
+        }
+
+        function editRoute(routeId) {
+            const routes = {
+                supermarket: '美廉社 - 大安店',
+                clinic: '林醫師診所',
+                park: '大安森林公園'
+            };
+            
+            alert(`編輯路線：${routes[routeId]}\n\n可修改項目：\n• 路線名稱\n• 目的地地址\n• 偏好路徑\n• 語音提示設定\n• 緊急聯絡人通知`);
+        }
+
+        function activateRoute(routeId) {
+            const routes = {
+                supermarket: '美廉社 - 大安店',
+                clinic: '林醫師診所',
+                park: '大安森林公園'
+            };
+            
+            alert(`已啟用路線：${routes[routeId]}\n\n✅ 已同步到CarPlay\n✅ 語音導航已準備\n✅ 安全監控已啟動\n\n王爺爺下次使用車輛時，此路線將自動顯示在主畫面。`);
+        }
+
+        function refreshLocation() {
+            alert('🔄 正在更新位置...\n\n📍 最新位置：台北市大安區\n⏰ 更新時間：' + new Date().toLocaleTimeString('zh-TW') + '\n✅ GPS信號正常');
+        }
+
+        function editSafeZone(zone) {
+            const zones = {
+                safe: '安全區域（綠色）',
+                warning: '注意區域（黃色）',
+                danger: '警戒區域（紅色）'
+            };
+            
+            alert(`編輯 ${zones[zone]}：\n\n可調整項目：\n• 範圍大小\n• 通知設定\n• 緊急聯絡人\n• 自動回家提醒時間`);
+        }
+
+        // AI Assistant Functions
+        function askAIAssistant() {
+            navigateTo('assistant');
+        }
+
+        function askQuestion(topic) {
+            const questions = {
+                driving: {
+                    question: '失智患者駕駛安全評估',
+                    answer: '失智症患者駕駛安全評估要點：\n\n🔍 評估指標：\n• 反應時間和注意力\n• 空間認知能力\n• 記憶力和判斷力\n• 手眼協調能力\n\n⚠️ 警示徵象：\n• 迷路或找不到熟悉地點\n• 忘記交通規則\n• 判斷距離困難\n• 容易分心或困惑\n\n📋 建議措施：\n• 定期醫學評估\n• 使用輔助導航系統\n• 限制駕駛範圍和時間\n• 準備替代交通方案\n\n重要：安全永遠是第一考量，必要時應考慮停止駕駛。'
+                },
+                navigation: {
+                    question: '導航系統設置建議',
+                    answer: '失智症患者導航系統設置建議：\n\n🚗 CarPlay設定：\n• 啟用大字體模式\n• 簡化介面顯示\n• 預設常用路線\n• 語音提示清晰\n\n🗺️ 路線管理：\n• 設定固定路線\n• 避免複雜路段\n• 標記重要地標\n• 緊急聯絡快捷鍵\n\n📱 安全功能：\n• GPS即時追蹤\n• 偏離路線警告\n• 自動回家提醒\n• 家人即時通知\n\n💡 使用技巧：\n• 事先練習熟悉路線\n• 避開尖峰時段\n• 確保手機充電充足'
+                },
+                behavior: {
+                    question: '如何應對重複性行為？',
+                    answer: '處理重複性行為的策略：\n\n1. 保持耐心和理解 - 這是疾病的症狀，不是故意的\n2. 轉移注意力 - 提供其他活動或話題\n3. 建立規律 - 固定的日程可以減少焦慮\n4. 找出觸發因素 - 觀察什麼情況下容易出現\n5. 提供安全的重複活動 - 如折毛巾、整理物品\n\n記住：回應時要溫和，避免糾正或爭辯。'
+                },
+                communication: {
+                    question: '有效溝通技巧',
+                    answer: '與失智患者溝通的技巧：\n\n1. 放慢語速，使用簡單句子\n2. 保持眼神接觸和友善表情\n3. 一次只說一件事情\n4. 給予充足的回應時間\n5. 使用肢體語言和手勢輔助\n6. 避免爭辯或糾正錯誤\n7. 重複重要訊息\n8. 保持積極正面的語調\n\n重點：專注於情感而非事實的準確性。'
+                }
+            };
+            
+            const qa = questions[topic];
+            addAIMessage(qa.question, true);
+            setTimeout(() => addAIMessage(qa.answer), 1000);
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiQuestion');
+            const question = input.value.trim();
+            
+            if (!question) return;
+            
+            addAIMessage(question, true);
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                let response = '';
+                if (question.includes('駕駛') || question.includes('開車')) {
+                    response = '關於駕駛安全，我建議：\n\n1. 定期評估駕駛能力\n2. 使用輔助導航系統\n3. 設定安全區域監控\n4. 準備緊急聯絡方案\n\n您需要更詳細的駕駛安全評估建議嗎？';
+                } else if (question.includes('導航') || question.includes('CarPlay')) {
+                    response = '關於導航設定，建議您：\n\n• 簡化CarPlay介面\n• 預設常用路線\n• 開啟語音導航\n• 設定緊急聯絡按鈕\n\n需要我幫您設定具體的導航選項嗎？';
+                } else {
+                    response = '感謝您的問題。根據您描述的情況，我建議您可以嘗試以下方法：\n\n1. 觀察具體狀況\n2. 制定應對策略\n3. 尋求專業建議\n4. 保持耐心理解\n\n如需更詳細的建議，建議諮詢專業醫療人員。';
+                }
+                addAIMessage(response);
+            }, 2000);
+        }
+
+        function addAIMessage(message, isUser = false) {
+            const chatMessages = document.getElementById('aiChatMessages');
+            const messageDiv = document.createElement('div');
+            
+            if (isUser) {
+                messageDiv.innerHTML = `
+                    <div class="flex justify-end">
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl px-3 py-2 max-w-xs">
+                            <p class="text-sm">${message}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="bg-white/50 rounded-xl p-3">
+                        <p class="text-sm whitespace-pre-line">${message}</p>
+                        <div class="text-xs text-gray-500 mt-1">小雨 • AI 助理</div>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Initialize behavior chart
+        function initializeBehaviorChart() {
+            const ctx = document.getElementById('behaviorChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['週一', '週二', '週三', '週四', '週五', '週六', '週日'],
+                    datasets: [{
+                        label: '駕駛安全分數',
+                        data: [95, 88, 92, 85, 98, 90, 93],
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: '活動參與度',
+                        data: [85, 78, 82, 75, 88, 90, 85],
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Resource materials
+        function showMaterial(type) {
+            const materials = {
+                'driving-assessment': {
+                    title: '駕駛能力評估表',
+                    content: `
+                        <div class="space-y-3">
+                            <h4 class="font-medium">每月評估項目：</h4>
+                            <div class="space-y-2 text-sm">
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>能準確判斷距離和速度</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>反應時間正常</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>能找到熟悉地點</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>遵守交通規則</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>能專注駕駛不分心</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-3">💡 如有3項以上未達標，建議諮詢醫師</p>
+                        </div>
+                    `
+                },
+                'car-preparation': {
+                    title: '車輛準備清單',
+                    content: `
+                        <div class="space-y-3">
+                            <h4 class="font-medium">外出前檢查：</h4>
+                            <div class="space-y-2 text-sm">
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>手機充電充足</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>GPS導航已設定</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>緊急聯絡人已通知</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>藥物已攜帶</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>身分證件已備齊</span>
+                                </label>
+                            </div>
+                        </div>
+                    `
+                },
+                'emergency-kit': {
+                    title: '車用緊急包',
+                    content: `
+                        <div class="space-y-3">
+                            <h4 class="font-medium">必備物品：</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="p-2 bg-white/20 rounded">📱 額外手機充電器</div>
+                                <div class="p-2 bg-white/20 rounded">💊 常用藥物</div>
+                                <div class="p-2 bg-white/20 rounded">💳 緊急聯絡卡</div>
+                                <div class="p-2 bg-white/20 rounded">💰 零錢現金</div>
+                                <div class="p-2 bg-white/20 rounded">🍫 緊急食物</div>
+                                <div class="p-2 bg-white/20 rounded">💧 瓶裝水</div>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-3">🔄 每月檢查更新</p>
+                        </div>
+                    `
+                }
+            };
+            
+            const material = materials[type];
+            document.getElementById('modalTitle').textContent = material.title;
+            document.getElementById('modalContent').innerHTML = material.content;
+            document.getElementById('materialModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('materialModal').classList.add('hidden');
+        }
+
+        // Emergency and communication functions
+        function emergencyCall(type) {
+            const contacts = {
+                doctor: '正在撥打給林醫師 (02) 2345-6789...',
+                police: '正在撥打大安分局 (02) 2700-4500...',
+                roadside: '正在撥打道路救援 0800-123-456...',
+                emergency: '正在撥打 119 緊急救護專線...'
+            };
+            
+            alert(contacts[type]);
+        }
+
+        function sendUpdate(person) {
+            alert(`已發送今日照護更新給 David Wang，包含：\n\n• 外出安全記錄\n• 駕駛行為分析\n• 健康狀況摘要\n• 用藥情況\n• 緊急聯絡資訊`);
+        }
+
+        function shareReport() {
+            alert('今日照護報告已分享給所有家庭成員！\n\n內容包含：\n• 外出駕駛安全記錄\n• 健康監測數據\n• 行為模式分析\n• 緊急事件記錄\n• 明日行程規劃');
+        }
+
+        function showAlertDetail(type) {
+            if (type === 'anxiety') {
+                alert('焦慮狀況詳情：\n\n時間：今天 14:30\n症狀：重複詢問舊照片位置\n持續時間：約20分鐘\n處理方式：陪同尋找，轉移注意力\n\n建議：\n• 準備替代活動\n• 觀察類似觸發因素\n• 必要時諮詢醫療人員');
+            }
+        }
+
+        function dismissAlert(type) {
+            document.getElementById('alertsContainer').innerHTML = '<p class="text-sm text-gray-600 text-center py-4">目前沒有需要關注的警示</p>';
+        }
+    </script>
+</body>
+</html>
