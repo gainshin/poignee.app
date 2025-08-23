@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poignée 伴阮 - 家庭照護助手</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #fef7ff 0%, #fdf2f8 25%, #eff6ff 75%, #f0f9ff 100%);
+        }
+        .glass-card {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .glass-button {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+        .glass-button.active {
+            background: rgba(147, 51, 234, 0.3);
+            border-color: rgba(147, 51, 234, 0.5);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .alert-high { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+        .alert-medium { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3); }
+        .alert-low { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); }
+        .floating-bg {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            mix-blend-mode: multiply;
+            filter: blur(40px);
+            opacity: 0.2;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .floating-bg:nth-child(1) {
+            background: #a855f7;
+            top: 2rem;
+            left: 1rem;
+        }
+        .floating-bg:nth-child(2) {
+            background: #ec4899;
+            top: 8rem;
+            right: 1rem;
+            animation-delay: 2s;
+        }
+        .floating-bg:nth-child(3) {
+            background: #3b82f6;
+            bottom: 8rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation-delay: 4s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(-15px) translateX(8px); }
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+    <!-- Floating Background Elements -->
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+    <div class="floating-bg"></div>
+
+    <!-- Main Container -->
+    <div class="relative z-10">
+        
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active p-4 space-y-4">
+            <!-- Header with Patient Info -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">照護中心</h1>
+                        <p class="text-sm text-gray-600">王爺爺的照護狀況</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500" id="currentTime"></div>
+                        <div class="text-xs text-gray-400">最後更新</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-white/20 rounded-xl">
+                    <div class="text-3xl">👴</div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold">王爺爺 (78歲)</h3>
+                        <p class="text-sm text-gray-600">輕度認知障礙 • 居家照護</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="w-2 h-2 bg-green-500 rounded-full pulse-animation"></div>
+                            <span class="text-xs text-green-600">狀態正常</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Alerts -->
+            <div id="alertsContainer">
+                <div class="glass-card rounded-2xl p-4 alert-medium">
+                    <div class="flex items-start gap-3">
+                        <div class="text-2xl">⚠️</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-orange-700">需要關注</h3>
+                            <p class="text-sm text-gray-700 mb-2">王爺爺今天下午似乎有些焦慮不安，提及找不到重要物品</p>
+                            <div class="flex gap-2">
+                                <button onclick="showAlertDetail('anxiety')" class="glass-button rounded-lg px-3 py-1 text-xs">查看詳情</button>
+                                <button onclick="dismissAlert('anxiety')" class="glass-button rounded-lg px-3 py-1 text-xs">標記處理</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Summary -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">今日概況</h2>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">💬</div>
+                        <div class="text-lg font-bold">12</div>
+                        <div class="text-xs text-gray-600">對話互動</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🚶</div>
+                        <div class="text-lg font-bold">2.3km</div>
+                        <div class="text-xs text-gray-600">活動量</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">😊</div>
+                        <div class="text-sm font-bold">平靜</div>
+                        <div class="text-xs text-gray-600">整體情緒</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">💊</div>
+                        <div class="text-lg font-bold">3/3</div>
+                        <div class="text-xs text-gray-600">用藥完成</div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="askAIAssistant()" class="glass-button rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🤖</div>
+                        <div class="text-sm">諮詢小雨</div>
+                    </button>
+                    <button onclick="navigateTo('resources')" class="glass-button rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">📋</div>
+                        <div class="text-sm">輔助材料</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">最近活動</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-2 bg-white/20 rounded-lg">
+                        <div class="text-xl">🍽️</div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">午餐用餐</div>
+                            <div class="text-xs text-gray-600">14:30 • 食慾良好，用餐完成</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2 bg-white/20 rounded-lg">
+                        <div class="text-xl">💬</div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">與小雨對話</div>
+                            <div class="text-xs text-gray-600">13:45 • 聊了童年回憶，情緒平穩</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2 bg-white/20 rounded-lg">
+                        <div class="text-xl">🚶</div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">外出散步</div>
+                            <div class="text-xs text-gray-600">10:30 • 公園散步30分鐘</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Assistant Page -->
+        <div id="assistant" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🤖</div>
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">AI 助理 - 小雨</h1>
+                        <p class="text-sm text-gray-600">專業照護諮詢與建議</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Questions -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">常見問題</h2>
+                <div class="space-y-2">
+                    <button onclick="askQuestion('behavior')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="font-medium text-sm">如何應對重複性行為？</div>
+                        <div class="text-xs text-gray-600 mt-1">處理失智患者的重複問題和行為</div>
+                    </button>
+                    <button onclick="askQuestion('communication')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="font-medium text-sm">有效溝通技巧</div>
+                        <div class="text-xs text-gray-600 mt-1">與失智患者溝通的最佳方式</div>
+                    </button>
+                    <button onclick="askQuestion('safety')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="font-medium text-sm">居家安全注意事項</div>
+                        <div class="text-xs text-gray-600 mt-1">預防跌倒和走失的安全措施</div>
+                    </button>
+                    <button onclick="askQuestion('nutrition')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="font-medium text-sm">飲食營養建議</div>
+                        <div class="text-xs text-gray-600 mt-1">適合失智患者的營養搭配</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Interface -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">諮詢對話</h2>
+                <div class="h-48 overflow-y-auto mb-3 space-y-3" id="aiChatMessages">
+                    <div class="bg-white/50 rounded-xl p-3">
+                        <p class="text-sm">您好！我是小雨，專門協助失智症家庭照護。有任何問題都可以問我，我會提供專業的建議和支援。</p>
+                        <div class="text-xs text-gray-500 mt-1">小雨 • 智能助理</div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="aiQuestion" placeholder="輸入您的問題..." class="flex-1 glass-button rounded-xl px-3 py-2 text-sm">
+                    <button onclick="sendAIMessage()" class="glass-button rounded-xl px-4 py-2 text-sm">
+                        發送
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Page -->
+        <div id="monitoring" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <h1 class="text-xl font-bold gradient-text mb-2">健康監測</h1>
+                <p class="text-sm text-gray-600">王爺爺的健康狀況追蹤</p>
+            </div>
+
+            <!-- Vital Signs -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">生理指標</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">❤️</div>
+                        <div class="text-lg font-bold">78</div>
+                        <div class="text-xs text-gray-600">心率 (bpm)</div>
+                        <div class="text-xs text-green-600">正常</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🩺</div>
+                        <div class="text-sm font-bold">125/80</div>
+                        <div class="text-xs text-gray-600">血壓 (mmHg)</div>
+                        <div class="text-xs text-green-600">正常</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">🌡️</div>
+                        <div class="text-lg font-bold">36.8°C</div>
+                        <div class="text-xs text-gray-600">體溫</div>
+                        <div class="text-xs text-green-600">正常</div>
+                    </div>
+                    <div class="bg-white/20 rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">😴</div>
+                        <div class="text-lg font-bold">7.2h</div>
+                        <div class="text-xs text-gray-600">昨晚睡眠</div>
+                        <div class="text-xs text-green-600">充足</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Behavioral Trends -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">行為趨勢</h2>
+                <canvas id="behaviorChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Medication Tracking -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">用藥記錄</h2>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between p-2 bg-white/20 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <div>
+                                <div class="text-sm font-medium">Donepezil 5mg</div>
+                                <div class="text-xs text-gray-600">早餐後 • 08:30</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-green-600">已服用</div>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white/20 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <div>
+                                <div class="text-sm font-medium">Memantine 10mg</div>
+                                <div class="text-xs text-gray-600">午餐後 • 12:30</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-green-600">已服用</div>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white/20 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 bg-orange-400 rounded-full pulse-animation"></div>
+                            <div>
+                                <div class="text-sm font-medium">維他命 B12</div>
+                                <div class="text-xs text-gray-600">晚餐後 • 19:00</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-orange-600">待服用</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Care Resources Page -->
+        <div id="resources" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <h1 class="text-xl font-bold gradient-text mb-2">照護資源</h1>
+                <p class="text-sm text-gray-600">生活輔助材料與照護指引</p>
+            </div>
+
+            <!-- Emergency Contacts -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">緊急聯絡</h2>
+                <div class="space-y-2">
+                    <button onclick="emergencyCall('doctor')" class="w-full glass-button rounded-xl p-3 flex items-center gap-3">
+                        <div class="text-2xl">👨‍⚕️</div>
+                        <div class="text-left flex-1">
+                            <div class="font-medium text-sm">林醫師</div>
+                            <div class="text-xs text-gray-600">神經內科 • (02) 2345-6789</div>
+                        </div>
+                        <div class="text-xl">📞</div>
+                    </button>
+                    <button onclick="emergencyCall('caregiver')" class="w-full glass-button rounded-xl p-3 flex items-center gap-3">
+                        <div class="text-2xl">👩‍⚕️</div>
+                        <div class="text-left flex-1">
+                            <div class="font-medium text-sm">陳護理師</div>
+                            <div class="text-xs text-gray-600">居家護理 • 0912-345-678</div>
+                        </div>
+                        <div class="text-xl">📞</div>
+                    </button>
+                    <button onclick="emergencyCall('emergency')" class="w-full glass-button rounded-xl p-3 flex items-center gap-3 bg-red-100/50">
+                        <div class="text-2xl">🚨</div>
+                        <div class="text-left flex-1">
+                            <div class="font-medium text-sm text-red-700">緊急救護</div>
+                            <div class="text-xs text-red-600">119 急救專線</div>
+                        </div>
+                        <div class="text-xl">📞</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Daily Care Materials -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">日常照護材料</h2>
+                <div class="space-y-3">
+                    <button onclick="showMaterial('conversation')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">💬</div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">對話引導卡片</div>
+                                <div class="text-xs text-gray-600">幫助開啟話題的對話素材</div>
+                            </div>
+                            <div class="text-lg">▶️</div>
+                        </div>
+                    </button>
+                    <button onclick="showMaterial('memory')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🧠</div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">記憶訓練遊戲</div>
+                                <div class="text-xs text-gray-600">認知功能維護活動</div>
+                            </div>
+                            <div class="text-lg">▶️</div>
+                        </div>
+                    </button>
+                    <button onclick="showMaterial('music')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🎵</div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">懷舊音樂播放清單</div>
+                                <div class="text-xs text-gray-600">情緒安撫與記憶喚醒</div>
+                            </div>
+                            <div class="text-lg">▶️</div>
+                        </div>
+                    </button>
+                    <button onclick="showMaterial('safety')" class="w-full glass-button rounded-xl p-3 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🛡️</div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">居家安全檢查表</div>
+                                <div class="text-xs text-gray-600">防跌倒與走失預防措施</div>
+                            </div>
+                            <div class="text-lg">▶️</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Care Guidelines -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">照護指引</h2>
+                <div class="space-y-2">
+                    <div class="p-3 bg-white/20 rounded-lg">
+                        <h4 class="font-medium text-sm mb-1">🌅 晨間照護</h4>
+                        <p class="text-xs text-gray-600">協助起床、盥洗、服藥、營養早餐</p>
+                    </div>
+                    <div class="p-3 bg-white/20 rounded-lg">
+                        <h4 class="font-medium text-sm mb-1">🌞 日間活動</h4>
+                        <p class="text-xs text-gray-600">適度運動、認知訓練、社交互動</p>
+                    </div>
+                    <div class="p-3 bg-white/20 rounded-lg">
+                        <h4 class="font-medium text-sm mb-1">🌙 晚間照護</h4>
+                        <p class="text-xs text-gray-600">晚餐準備、服藥提醒、睡前安撫</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Family Communication Page -->
+        <div id="family" class="page p-4 space-y-4">
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-4">
+                <h1 class="text-xl font-bold gradient-text mb-2">家庭聯繫</h1>
+                <p class="text-sm text-gray-600">與其他家庭成員協調照護</p>
+            </div>
+
+            <!-- Family Members -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">照護團隊</h2>
+                <div class="space-y-3">
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h3 class="font-semibold">David Wang (兒子)</h3>
+                                <p class="text-sm text-gray-600">主要照護者 • 溫哥華</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">溫哥華時間</div>
+                                <div class="font-semibold" id="vancouverTime2">03:30</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="glass-button rounded-lg px-3 py-1 text-xs">📞 通話</button>
+                            <button onclick="sendUpdate('david')" class="glass-button rounded-lg px-3 py-1 text-xs">📤 發送更新</button>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h3 class="font-semibold">王美玲 (女兒)</h3>
+                                <p class="text-sm text-gray-600">協助照護 • 台北</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">台北時間</div>
+                                <div class="font-semibold" id="taipeiTime2">18:30</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="glass-button rounded-lg px-3 py-1 text-xs">💬 LINE</button>
+                            <button onclick="sendUpdate('meiling')" class="glass-button rounded-lg px-3 py-1 text-xs">📤 發送更新</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Report -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">今日報告</h2>
+                <div class="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl mb-3">
+                    <h4 class="font-medium mb-2">📋 照護摘要</h4>
+                    <div class="text-sm space-y-1">
+                        <p>• 情緒狀態：整體平穩，下午有輕微焦慮</p>
+                        <p>• 生理狀況：各項指標正常，食慾良好</p>
+                        <p>• 活動參與：完成散步和認知訓練</p>
+                        <p>• 用藥情況：按時服藥，無不良反應</p>
+                        <p>• 特殊事項：詢問找不到的舊照片</p>
+                    </div>
+                </div>
+                <button onclick="shareReport()" class="w-full glass-button rounded-xl py-2 text-sm">
+                    📤 分享今日報告給家庭成員
+                </button>
+            </div>
+
+            <!-- Care Schedule -->
+            <div class="glass-card rounded-2xl p-4">
+                <h2 class="text-lg font-semibold mb-3">照護輪班</h2>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between p-2 bg-white/20 rounded-lg">
+                        <div>
+                            <div class="font-medium text-sm">早班 (8:00-16:00)</div>
+                            <div class="text-xs text-gray-600">王美玲負責</div>
+                        </div>
+                        <div class="text-xs text-green-600">今日</div>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white/20 rounded-lg">
+                        <div>
+                            <div class="font-medium text-sm">晚班 (16:00-24:00)</div>
+                            <div class="text-xs text-gray-600">居家護理師</div>
+                        </div>
+                        <div class="text-xs text-blue-600">今日</div>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white/20 rounded-lg">
+                        <div>
+                            <div class="font-medium text-sm">夜班 (24:00-8:00)</div>
+                            <div class="text-xs text-gray-600">緊急呼叫系統</div>
+                        </div>
+                        <div class="text-xs text-purple-600">今日</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-card rounded-t-3xl border-b-0 z-50">
+        <div class="flex justify-around items-center py-2">
+            <button onclick="navigateTo('dashboard')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg active" data-page="dashboard">
+                <div class="text-lg">🏠</div>
+                <span class="text-xs">總覽</span>
+            </button>
+            <button onclick="navigateTo('assistant')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="assistant">
+                <div class="text-lg">🤖</div>
+                <span class="text-xs">AI諮詢</span>
+            </button>
+            <button onclick="navigateTo('monitoring')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="monitoring">
+                <div class="text-lg">📊</div>
+                <span class="text-xs">監測</span>
+            </button>
+            <button onclick="navigateTo('resources')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="resources">
+                <div class="text-lg">📋</div>
+                <span class="text-xs">資源</span>
+            </button>
+            <button onclick="navigateTo('family')" class="nav-btn flex flex-col items-center gap-1 px-3 py-2 rounded-lg" data-page="family">
+                <div class="text-lg">👥</div>
+                <span class="text-xs">家庭</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Modal for Material Details -->
+    <div id="materialModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card rounded-2xl p-6 max-w-md w-full max-h-96 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-lg font-semibold"></h3>
+                <button onclick="closeModal()" class="glass-button rounded-full p-2 text-lg">✕</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateTime();
+            initializeBehaviorChart();
+            setInterval(updateDateTime, 60000);
+        });
+
+        // Navigation
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(page).classList.add('active');
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+        }
+
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('zh-TW', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            // Update timezone times
+            const vancouverTime = new Intl.DateTimeFormat('zh-TW', {
+                timeZone: 'America/Vancouver',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(now);
+            
+            const taipeiTime = new Intl.DateTimeFormat('zh-TW', {
+                timeZone: 'Asia/Taipei',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(now);
+            
+            document.getElementById('vancouverTime2').textContent = vancouverTime;
+            document.getElementById('taipeiTime2').textContent = taipeiTime;
+        }
+
+        // AI Assistant Functions
+        function askAIAssistant() {
+            navigateTo('assistant');
+        }
+
+        function askQuestion(topic) {
+            const questions = {
+                behavior: {
+                    question: '如何應對重複性行為？',
+                    answer: '處理重複性行為的策略：\n\n1. 保持耐心和理解 - 這是疾病的症狀，不是故意的\n2. 轉移注意力 - 提供其他活動或話題\n3. 建立規律 - 固定的日程可以減少焦慮\n4. 找出觸發因素 - 觀察什麼情況下容易出現\n5. 提供安全的重複活動 - 如折毛巾、整理物品\n\n記住：回應時要溫和，避免糾正或爭辯。'
+                },
+                communication: {
+                    question: '有效溝通技巧',
+                    answer: '與失智患者溝通的技巧：\n\n1. 放慢語速，使用簡單句子\n2. 保持眼神接觸和友善表情\n3. 一次只說一件事情\n4. 給予充足的回應時間\n5. 使用肢體語言和手勢輔助\n6. 避免爭辯或糾正錯誤\n7. 重複重要訊息\n8. 保持積極正面的語調\n\n重點：專注於情感而非事實的準確性。'
+                },
+                safety: {
+                    question: '居家安全注意事項',
+                    answer: '居家安全措施：\n\n防跌倒：\n• 移除地毯和電線\n• 安裝扶手和防滑墊\n• 確保充足照明\n• 穿防滑鞋\n\n防走失：\n• 在顯眼處放置聯絡資訊\n• 考慮GPS定位設備\n• 鄰居聯繫網絡\n• 門鎖安全措施\n\n用藥安全：\n• 藥盒分裝管理\n• 設定提醒鬧鈴\n• 定期檢查過期藥物'
+                },
+                nutrition: {
+                    question: '飲食營養建議',
+                    answer: '失智患者營養建議：\n\n基本原則：\n• 定時定量，規律用餐\n• 提供營養均衡的餐點\n• 質地適中，易於咀嚼\n• 充足水分攝取\n\n推薦食物：\n• 深海魚類（Omega-3）\n• 深色蔬菜和水果\n• 全穀類食物\n• 堅果和種子\n\n注意事項：\n• 監督用餐避免嗆咳\n• 提供餐具輔助\n• 營造愉快用餐環境'
+                }
+            };
+            
+            const qa = questions[topic];
+            addAIMessage(qa.question, true);
+            setTimeout(() => addAIMessage(qa.answer), 1000);
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiQuestion');
+            const question = input.value.trim();
+            
+            if (!question) return;
+            
+            addAIMessage(question, true);
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const responses = [
+                    '感謝您的問題。根據您描述的情況，我建議您可以嘗試以下方法：\n\n1. 觀察觸發因素\n2. 建立固定作息\n3. 提供適當活動\n4. 保持耐心理解\n\n如需更詳細的建議，建議諮詢專業醫療人員。',
+                    '這是很常見的照護問題。建議您：\n\n• 保持環境穩定\n• 使用熟悉的物品\n• 給予充分時間\n• 適時尋求專業支援\n\n記住，您已經做得很好了！照護者的身心健康同樣重要。'
+                ];
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                addAIMessage(response);
+            }, 2000);
+        }
+
+        function addAIMessage(message, isUser = false) {
+            const chatMessages = document.getElementById('aiChatMessages');
+            const messageDiv = document.createElement('div');
+            
+            if (isUser) {
+                messageDiv.innerHTML = `
+                    <div class="flex justify-end">
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl px-3 py-2 max-w-xs">
+                            <p class="text-sm">${message}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="bg-white/50 rounded-xl p-3">
+                        <p class="text-sm whitespace-pre-line">${message}</p>
+                        <div class="text-xs text-gray-500 mt-1">小雨 • AI 助理</div>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Initialize behavior chart
+        function initializeBehaviorChart() {
+            const ctx = document.getElementById('behaviorChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['週一', '週二', '週三', '週四', '週五', '週六', '週日'],
+                    datasets: [{
+                        label: '活動參與度',
+                        data: [85, 78, 82, 75, 88, 90, 85],
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: '情緒穩定度',
+                        data: [80, 85, 75, 70, 85, 88, 82],
+                        borderColor: 'rgba(236, 72, 153, 1)',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Care resources functions
+        function showMaterial(type) {
+            const materials = {
+                conversation: {
+                    title: '對話引導卡片',
+                    content: `
+                        <div class="space-y-3">
+                            <h4 class="font-medium">開啟對話的話題：</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="p-2 bg-white/20 rounded">💭 "您還記得年輕時最喜歡做什麼嗎？"</div>
+                                <div class="p-2 bg-white/20 rounded">🏠 "說說看您小時候住的地方..."</div>
+                                <div class="p-2 bg-white/20 rounded">🍽️ "您最拿手的菜是什麼？"</div>
+                                <div class="p-2 bg-white/20 rounded">🎵 "有什麼歌曲讓您想起美好回憶？"</div>
+                                <div class="p-2 bg-white/20 rounded">👨‍👩‍👧‍👦 "跟我說說家裡的故事吧..."</div>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-3">💡 提示：專注於情感和感受，而不是事實的準確性</p>
+                        </div>
+                    `
+                },
+                memory: {
+                    title: '記憶訓練遊戲',
+                    content: `
+                        <div class="space-y-3">
+                            <h4 class="font-medium">簡單認知活動：</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="p-2 bg-white/20 rounded">🧩 拼圖遊戲（大塊簡單圖案）</div>
+                                <div class="p-2 bg-white/20 rounded">🎴 配對卡片（顏色、形狀）</div>
+                                <div class="p-2 bg-white/20 rounded">📸 照片回憶（家庭、旅行）</div>
+                                <div class="p-2 bg-white/20 rounded">🎯 簡單計算（日期、時間）</div>
+                                <div class="p-2 bg-white/20 rounded">📝 寫日記或畫圖</div>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-3">💡 提示：活動時間15-30分鐘，避免過度疲勞</p>
+                        </div>
+                    `
+                },
+                music: {
+                    title: '懷舊音樂播放清單',
+                    content: `
+                        <div class="space-y-3">
+                            <h4 class="font-medium">推薦曲目：</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="p-2 bg-white/20 rounded">🎵 望春風 - 鄧雨賢</div>
+                                <div class="p-2 bg-white/20 rounded">🎵 雨夜花 - 鄧雨賢</div>
+                                <div class="p-2 bg-white/20 rounded">🎵 月夜愁 - 鄧雨賢</div>
+                                <div class="p-2 bg-white/20 rounded">🎵 甜蜜蜜 - 鄧麗君</div>
+                                <div class="p-2 bg-white/20 rounded">🎵 小城故事 - 鄧麗君</div>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-3">💡 提示：觀察音樂對情緒的影響，調整播放清單</p>
+                        </div>
+                    `
+                },
+                safety: {
+                    title: '居家安全檢查表',
+                    content: `
+                        <div class="space-y-3">
+                            <h4 class="font-medium">每日檢查項目：</h4>
+                            <div class="space-y-2 text-sm">
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>地面無雜物</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>燈光充足</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>門窗安全</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>藥物安全存放</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span>緊急聯絡資訊可見</span>
+                                </label>
+                            </div>
+                        </div>
+                    `
+                }
+            };
+            
+            const material = materials[type];
+            document.getElementById('modalTitle').textContent = material.title;
+            document.getElementById('modalContent').innerHTML = material.content;
+            document.getElementById('materialModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('materialModal').classList.add('hidden');
+        }
+
+        // Emergency and communication functions
+        function emergencyCall(type) {
+            const contacts = {
+                doctor: '正在撥打給林醫師 (02) 2345-6789...',
+                caregiver: '正在撥打給陳護理師 0912-345-678...',
+                emergency: '正在撥打 119 緊急救護專線...'
+            };
+            
+            alert(contacts[type]);
+        }
+
+        function sendUpdate(person) {
+            const updates = {
+                david: 'David Wang',
+                meiling: '王美玲'
+            };
+            
+            alert(`已發送今日照護更新給 ${updates[person]}，包含：\n\n• 健康狀況摘要\n• 活動參與記錄\n• 用藥情況\n• 情緒變化\n• 特殊事項記錄`);
+        }
+
+        function shareReport() {
+            alert('今日照護報告已分享給所有家庭成員！\n\n內容包含：\n• 詳細活動記錄\n• 健康監測數據\n• 情緒狀態分析\n• 照護建議\n• 明日注意事項');
+        }
+
+        function showAlertDetail(type) {
+            if (type === 'anxiety') {
+                alert('焦慮狀況詳情：\n\n時間：今天 14:30\n症狀：重複詢問舊照片位置\n持續時間：約20分鐘\n處理方式：陪同尋找，轉移注意力\n\n建議：\n• 準備替代活動\n• 觀察類似觸發因素\n• 必要時諮詢醫療人員');
+            }
+        }
+
+        function dismissAlert(type) {
+            document.getElementById('alertsContainer').innerHTML = '<p class="text-sm text-gray-600 text-center py-4">目前沒有需要關注的警示</p>';
+        }
+    </script>
+</body>
+</html>
