@@ -773,42 +773,576 @@
             <!-- Other tabs content remains the same but with AIPET indicators added -->
             <!-- AI Consultation Tab -->
             <div id="ai-consultationContent" class="page">
-                <div class="neo-card p-8">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center space-x-3">
-                        <span>🤖 AI 諮詢中心</span>
-                        <span class="aipet-badge">🛡️ AIPET 原則應用</span>
-                    </h2>
-                    <p class="text-slate-600">AI諮詢功能展示頁面，包含一對一和群組諮詢模式...</p>
+                <div class="mb-6">
+                    <div class="flex justify-center">
+                        <div class="neo-card p-2">
+                            <div class="flex space-x-2">
+                                <button onclick="switchConsultationMode('personal')" class="nav-tab active" id="personalModeBtn">
+                                    <span class="flex items-center space-x-2">
+                                        <span class="text-lg">🤝</span>
+                                        <span class="font-medium">一對一諮詢</span>
+                                    </span>
+                                </button>
+                                <button onclick="switchConsultationMode('group')" class="nav-tab" id="groupModeBtn">
+                                    <span class="flex items-center space-x-2">
+                                        <span class="text-lg">👥</span>
+                                        <span class="font-medium">家庭群組</span>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Consultation Mode -->
+                <div id="personalConsultation" class="consultation-mode">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                        <!-- Main Caregiver Profile -->
+                        <div class="neo-card p-6">
+                            <div class="text-center mb-4">
+                                <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-white font-bold">
+                                    陳
+                                </div>
+                                <h3 class="text-lg font-semibold">陳美玲</h3>
+                                <p class="text-sm text-gray-600">主要照顧者 • 王爺爺女兒</p>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div class="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+                                    <h4 class="font-medium mb-2">照護經驗</h4>
+                                    <div class="text-sm text-gray-600 space-y-1">
+                                        <p>• 照護時間：2年3個月</p>
+                                        <p>• 照護強度：全日照護</p>
+                                        <p>• 專業訓練：已完成基礎訓練</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
+                                    <h4 class="font-medium mb-2">最近關注</h4>
+                                    <div class="text-sm text-gray-600 space-y-1">
+                                        <p>• 夜間睡眠品質</p>
+                                        <p>• 駕駛安全評估</p>
+                                        <p>• 情緒波動管理</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personal AI Chat -->
+                        <div class="lg:col-span-3">
+                            <div class="neo-card p-6">
+                                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center text-white text-xl shadow-glow">
+                                            🌧️
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-slate-800">小雨專屬諮詢</h3>
+                                            <p class="text-sm text-slate-500">針對您的照護需求提供個人化建議</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-2 h-2 status-online rounded-full"></div>
+                                        <span class="text-sm text-slate-600">線上</span>
+                                    </div>
+                                </div>
+
+                                <div class="h-96 overflow-y-auto custom-scrollbar space-y-4 mb-6" id="personalChatMessages">
+                                    <div class="message-ai p-4">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center text-sm">
+                                                🌧️
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-slate-700">陳女士您好！我注意到您最近經常詢問關於王爺爺的駕駛安全問題。今天有什麼特別想討論的嗎？</p>
+                                                <div class="text-xs text-slate-500 mt-2">小雨 • 剛剛</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex space-x-3 mb-4">
+                                    <input type="text" 
+                                           placeholder="輸入您的問題或擔憂..." 
+                                           class="flex-1 form-input"
+                                           id="personalChatInput"
+                                           onkeypress="if(event.key==='Enter') sendPersonalMessage()">
+                                    <button onclick="sendPersonalMessage()" class="btn-primary interactive-element">
+                                        發送
+                                    </button>
+                                </div>
+
+                                <!-- Quick Questions -->
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <button onclick="quickPersonalQuestion('sleep')" class="p-3 text-sm bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl transition-colors interactive-element">
+                                        😴 睡眠問題
+                                    </button>
+                                    <button onclick="quickPersonalQuestion('driving')" class="p-3 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition-colors interactive-element">
+                                        🚗 駕駛安全
+                                    </button>
+                                    <button onclick="quickPersonalQuestion('medication')" class="p-3 text-sm bg-green-50 hover:bg-green-100 text-green-700 rounded-xl transition-colors interactive-element">
+                                        💊 用藥提醒
+                                    </button>
+                                    <button onclick="quickPersonalQuestion('mood')" class="p-3 text-sm bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-xl transition-colors interactive-element">
+                                        😊 情緒管理
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Consultation Mode -->
+                <div id="groupConsultation" class="consultation-mode" style="display: none;">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                        <!-- Family Members -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold mb-4">👨‍👩‍👧‍👦 家庭成員</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-xs font-bold">陳</div>
+                                    <div>
+                                        <div class="text-sm font-medium">陳美玲</div>
+                                        <div class="text-xs text-gray-500">主要照顧者</div>
+                                    </div>
+                                    <div class="w-2 h-2 status-online rounded-full ml-auto"></div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-xs font-bold">王</div>
+                                    <div>
+                                        <div class="text-sm font-medium">王志明</div>
+                                        <div class="text-xs text-gray-500">兒子</div>
+                                    </div>
+                                    <div class="w-2 h-2 status-warning rounded-full ml-auto"></div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center text-white text-xs font-bold">張</div>
+                                    <div>
+                                        <div class="text-sm font-medium">張淑芬</div>
+                                        <div class="text-xs text-gray-500">看護</div>
+                                    </div>
+                                    <div class="w-2 h-2 status-online rounded-full ml-auto"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Group Chat -->
+                        <div class="lg:col-span-3">
+                            <div class="neo-card p-6">
+                                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center text-white text-xl shadow-glow">
+                                            🌧️
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-slate-800">家庭群組諮詢</h3>
+                                            <p class="text-sm text-slate-500">與家庭成員共同討論照護計畫</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-slate-500">3 位成員在線上</div>
+                                </div>
+
+                                <div class="h-96 overflow-y-auto custom-scrollbar space-y-4 mb-6" id="groupChatMessages">
+                                    <div class="message-ai p-4">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center text-sm">
+                                                🌧️
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-slate-700">大家好！根據今天的觀察，王爺爺的整體狀況穩定。我建議大家討論一下明天的復健科回診安排。</p>
+                                                <div class="text-xs text-slate-500 mt-2">小雨 • 剛剛</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="message-user p-4">
+                                        <div class="text-sm">好的，我可以陪爸爸去回診。需要特別注意什麼嗎？</div>
+                                        <div class="text-xs opacity-80 mt-2">陳美玲 • 2分鐘前</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex space-x-3">
+                                    <input type="text" 
+                                           placeholder="與家庭成員和小雨對話..." 
+                                           class="flex-1 form-input"
+                                           id="groupChatInput"
+                                           onkeypress="if(event.key==='Enter') sendGroupMessage()">
+                                    <button onclick="sendGroupMessage()" class="btn-primary interactive-element">
+                                        發送
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Navigation Tab -->
             <div id="navigationContent" class="page">
-                <div class="neo-card p-8">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center space-x-3">
-                        <span>🚗 導航與駕駛安全</span>
-                        <span class="aipet-badge">🛡️ 隱私保護</span>
-                    </h2>
-                    <p class="text-slate-600">汽車導航和CarPlay配置功能展示頁面...</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Main Navigation Panel -->
+                    <div class="lg:col-span-2">
+                        <div class="neo-card p-8">
+                            <div class="flex items-center space-x-4 mb-6">
+                                <div class="text-3xl">🚗</div>
+                                <div>
+                                    <h1 class="text-xl font-bold text-gradient">導航與駕駛安全</h1>
+                                    <p class="text-sm text-gray-600">管理外出路線與CarPlay設置</p>
+                                </div>
+                                <span class="aipet-badge ml-auto">🛡️ AIPET 原則應用</span>
+                            </div>
+
+                            <!-- Current Driving Status -->
+                            <div class="mb-8">
+                                <h2 class="text-lg font-semibold mb-4">🚗 即時駕駛狀況</h2>
+                                <div class="status-card-good rounded-2xl p-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="text-2xl">🏠</div>
+                                            <div>
+                                                <h3 class="font-semibold">已安全返家</h3>
+                                                <p class="text-sm text-gray-600">王爺爺目前在家中，狀態良好</p>
+                                            </div>
+                                        </div>
+                                        <button onclick="showDrivingDetail()" class="btn-secondary interactive-element">
+                                            查看詳情
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preset Routes -->
+                            <div class="mb-8">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-lg font-semibold">📍 預設路線</h2>
+                                    <button onclick="addNewRoute()" class="btn-primary interactive-element">
+                                        ➕ 新增路線
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="neo-card p-4 interactive-element">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="text-2xl">🛒</div>
+                                            <button onclick="activateRoute('supermarket')" class="btn-secondary text-xs">
+                                                啟用
+                                            </button>
+                                        </div>
+                                        <h4 class="font-medium">美廉社</h4>
+                                        <p class="text-sm text-gray-600">距離: 1.2km • 預計8分鐘</p>
+                                    </div>
+                                    
+                                    <div class="neo-card p-4 interactive-element">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="text-2xl">🏥</div>
+                                            <button onclick="activateRoute('clinic')" class="btn-secondary text-xs">
+                                                啟用
+                                            </button>
+                                        </div>
+                                        <h4 class="font-medium">診所</h4>
+                                        <p class="text-sm text-gray-600">距離: 2.5km • 預計15分鐘</p>
+                                    </div>
+                                    
+                                    <div class="neo-card p-4 interactive-element">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="text-2xl">🌳</div>
+                                            <button onclick="activateRoute('park')" class="btn-secondary text-xs">
+                                                啟用
+                                            </button>
+                                        </div>
+                                        <h4 class="font-medium">大安森林公園</h4>
+                                        <p class="text-sm text-gray-600">距離: 3.1km • 預計20分鐘</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CarPlay Settings -->
+                            <div>
+                                <h2 class="text-lg font-semibold mb-4">🚗 CarPlay 介面設置</h2>
+                                <div class="neo-card p-6">
+                                    <div class="space-y-4">
+                                        <div class="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                            <h4 class="font-medium mb-2">🚗 車載顯示設定</h4>
+                                            <div class="space-y-2 text-sm">
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" checked class="rounded">
+                                                    <span>啟用大字體模式</span>
+                                                </label>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" checked class="rounded">
+                                                    <span>簡化介面顯示</span>
+                                                </label>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" checked class="rounded">
+                                                    <span>語音導航提示</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
+                                            <h4 class="font-medium mb-2">🛡️ 安全監控設定</h4>
+                                            <div class="space-y-2 text-sm">
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" checked class="rounded">
+                                                    <span>偏離路線通知</span>
+                                                </label>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" checked class="rounded">
+                                                    <span>速度超限提醒</span>
+                                                </label>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" checked class="rounded">
+                                                    <span>家人即時通知</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="space-y-6">
+                        <!-- Safety Status -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">🛡️ 安全監控</h3>
+                            <div class="space-y-4">
+                                <div class="status-card-good rounded-xl p-4">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-emerald-700">95%</div>
+                                        <div class="text-sm text-emerald-600">安全評分</div>
+                                    </div>
+                                </div>
+                                <div class="text-sm space-y-2">
+                                    <div class="flex justify-between">
+                                        <span>本週外出</span>
+                                        <span class="font-medium">5次</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>偏離路線</span>
+                                        <span class="font-medium text-green-600">0次</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>平均行程時間</span>
+                                        <span class="font-medium">12分鐘</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Contacts -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">🚨 緊急聯絡</h3>
+                            <div class="space-y-3">
+                                <button onclick="emergencyCall()" class="w-full p-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl interactive-element">
+                                    <div class="text-sm font-medium">📞 緊急聯絡</div>
+                                    <div class="text-xs opacity-90">110 / 119</div>
+                                </button>
+                                <button onclick="roadsideAssistance()" class="w-full p-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl interactive-element">
+                                    <div class="text-sm font-medium">🚗 道路救援</div>
+                                    <div class="text-xs opacity-90">24小時服務</div>
+                                </button>
+                                <button onclick="familyContact()" class="w-full p-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl interactive-element">
+                                    <div class="text-sm font-medium">👨‍👩‍👧‍👦 家人聯絡</div>
+                                    <div class="text-xs opacity-90">一鍵通知所有人</div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Trips -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">📊 近期行程</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="text-lg">🛒</div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">美廉社</div>
+                                            <div class="text-xs text-gray-500">今天 09:30 • 安全抵達</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="text-lg">🏥</div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">診所回診</div>
+                                            <div class="text-xs text-gray-500">昨天 10:00 • 安全抵達</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Family Tab -->
             <div id="familyContent" class="page">
                 <div class="neo-card p-8">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center space-x-3">
-                        <span>👥 家庭協作管理</span>
-                        <span class="aipet-badge">🛡️ 資料保護</span>
-                    </h2>
-                    <p class="text-slate-600">家庭成員協作和任務管理功能展示頁面...</p>
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800">家庭協作管理</h2>
+                        <span class="aipet-badge">🛡️ AIPET 原則應用</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Family Member Cards -->
+                        <div class="neo-card p-6 interactive-element">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-xl font-bold">
+                                    陳
+                                </div>
+                                <h3 class="font-semibold">陳美玲</h3>
+                                <p class="text-sm text-gray-600">主要照顧者</p>
+                                <div class="mt-3">
+                                    <div class="w-2 h-2 status-online rounded-full mx-auto"></div>
+                                    <div class="text-xs text-emerald-600 mt-1">線上</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="neo-card p-6 interactive-element">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-xl font-bold">
+                                    王
+                                </div>
+                                <h3 class="font-semibold">王志明</h3>
+                                <p class="text-sm text-gray-600">兒子</p>
+                                <div class="mt-3">
+                                    <div class="w-2 h-2 status-online rounded-full mx-auto"></div>
+                                    <div class="text-xs text-emerald-600 mt-1">線上</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="neo-card p-6 interactive-element">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-xl font-bold">
+                                    李
+                                </div>
+                                <h3 class="font-semibold">李小華</h3>
+                                <p class="text-sm text-gray-600">媳婦</p>
+                                <div class="mt-3">
+                                    <div class="w-2 h-2 status-warning rounded-full mx-auto"></div>
+                                    <div class="text-xs text-amber-600 mt-1">忙碌中</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="neo-card p-6 interactive-element">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-xl font-bold">
+                                    張
+                                </div>
+                                <h3 class="font-semibold">張淑芬</h3>
+                                <p class="text-sm text-gray-600">看護</p>
+                                <div class="mt-3">
+                                    <div class="w-2 h-2 status-online rounded-full mx-auto"></div>
+                                    <div class="text-xs text-emerald-600 mt-1">值班中</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Family Coordination Tools -->
+                    <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="neo-card p-6">
+                            <h3 class="text-lg font-semibold mb-4">📅 共同行事曆</h3>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <div class="font-medium text-blue-800">明天 14:30</div>
+                                    <div class="text-sm text-blue-600">復健科回診</div>
+                                    <div class="text-xs text-blue-500">負責人: 王志明</div>
+                                </div>
+                                <div class="p-3 bg-green-50 border border-green-200 rounded-xl">
+                                    <div class="font-medium text-green-800">週六 10:00</div>
+                                    <div class="text-sm text-green-600">家庭聚餐</div>
+                                    <div class="text-xs text-green-500">地點: 家中</div>
+                                </div>
+                                <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl">
+                                    <div class="font-medium text-purple-800">下週一 09:00</div>
+                                    <div class="text-sm text-purple-600">定期健康檢查</div>
+                                    <div class="text-xs text-purple-500">負責人: 陳美玲</div>
+                                </div>
+                            </div>
+                            <button onclick="addCalendarEvent()" class="w-full mt-4 btn-primary interactive-element">
+                                新增行事曆事件
+                            </button>
+                        </div>
+
+                        <div class="neo-card p-6">
+                            <h3 class="text-lg font-semibold mb-4">📋 任務清單</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                                    <div>
+                                        <div class="font-medium text-amber-800">藥物補充</div>
+                                        <div class="text-xs text-amber-600">預計週三用完</div>
+                                    </div>
+                                    <button onclick="assignTask('medication')" class="btn-primary text-xs">
+                                        指派
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-xl">
+                                    <div>
+                                        <div class="font-medium text-purple-800">定期健康檢查</div>
+                                        <div class="text-xs text-purple-600">每月例行檢查</div>
+                                    </div>
+                                    <button onclick="assignTask('checkup')" class="btn-secondary text-xs">
+                                        安排
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-xl">
+                                    <div>
+                                        <div class="font-medium text-green-800">復健運動陪伴</div>
+                                        <div class="text-xs text-green-600">每週二、四</div>
+                                    </div>
+                                    <button onclick="assignTask('exercise')" class="btn-secondary text-xs">
+                                        排程
+                                    </button>
+                                </div>
+                            </div>
+                            <button onclick="addNewTask()" class="w-full mt-4 btn-primary interactive-element">
+                                新增任務
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Communication Panel -->
+                    <div class="mt-8">
+                        <div class="neo-card p-6">
+                            <h3 class="text-lg font-semibold mb-4">💬 家庭通訊</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <button onclick="startFamilyChat()" class="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl hover:from-blue-100 hover:to-cyan-100 transition-colors interactive-element">
+                                    <div class="text-2xl mb-2">💬</div>
+                                    <div class="font-medium text-blue-800">家庭群組</div>
+                                    <div class="text-xs text-blue-600">即時訊息交流</div>
+                                </button>
+                                
+                                <button onclick="sendEmergencyAlert()" class="p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl hover:from-red-100 hover:to-pink-100 transition-colors interactive-element">
+                                    <div class="text-2xl mb-2">🚨</div>
+                                    <div class="font-medium text-red-800">緊急通知</div>
+                                    <div class="text-xs text-red-600">一鍵通知所有人</div>
+                                </button>
+                                
+                                <button onclick="shareUpdate()" class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl hover:from-green-100 hover:to-emerald-100 transition-colors interactive-element">
+                                    <div class="text-2xl mb-2">📝</div>
+                                    <div class="font-medium text-green-800">狀況分享</div>
+                                    <div class="text-xs text-green-600">分享照護更新</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        // Current active tab
+        // Current active tab and consultation mode
         let activeTab = 'overview';
+        let activeConsultationMode = 'personal';
         let aipetHelperTimeout;
         let aipetPanelOpen = false;
 
@@ -1042,6 +1576,203 @@
 
         function medicalRecord() {
             alert('🏥 醫療記錄功能\n\n✓ AIPET合規處理：\n• 特種個人資料保護\n• 完整資料主體權利\n• 醫療隱私嚴格把關\n\n可查看最近就診記錄');
+        }
+
+        // Consultation mode switching
+        function switchConsultationMode(mode) {
+            activeConsultationMode = mode;
+            
+            // Update mode buttons
+            document.getElementById('personalModeBtn').classList.remove('active');
+            document.getElementById('groupModeBtn').classList.remove('active');
+            document.getElementById(mode + 'ModeBtn').classList.add('active');
+            
+            // Show/hide consultation panels
+            if (mode === 'personal') {
+                document.getElementById('personalConsultation').style.display = 'block';
+                document.getElementById('groupConsultation').style.display = 'none';
+            } else {
+                document.getElementById('personalConsultation').style.display = 'none';
+                document.getElementById('groupConsultation').style.display = 'block';
+            }
+        }
+
+        // Personal consultation functions
+        function sendPersonalMessage() {
+            const input = document.getElementById('personalChatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addPersonalChatMessage(message, true);
+                input.value = '';
+                
+                setTimeout(() => {
+                    const response = generatePersonalAIResponse(message);
+                    addPersonalChatMessage(response, false);
+                }, 2000);
+            }
+        }
+
+        function addPersonalChatMessage(message, isUser = false) {
+            const chatContainer = document.getElementById('personalChatMessages');
+            const messageDiv = document.createElement('div');
+            
+            if (isUser) {
+                messageDiv.className = 'message-user p-4';
+                messageDiv.innerHTML = `
+                    <div class="text-sm">${message}</div>
+                    <div class="text-xs opacity-80 mt-2">您 • 剛剛</div>
+                `;
+            } else {
+                messageDiv.className = 'message-ai p-4';
+                messageDiv.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center text-sm">
+                            🌧️
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-700">${message}</p>
+                            <div class="text-xs text-slate-500 mt-2">小雨 • 剛剛</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function generatePersonalAIResponse(message) {
+            const responses = [
+                "感謝您的問題。根據王爺爺的最近狀況，我建議...",
+                "這是一個很好的觀察。讓我為您分析一下相關的照護要點...",
+                "基於AIPET原則應用，我會為您提供個人化的建議...",
+                "我理解您的擔心。讓我們一起制定一個合適的照護策略..."
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        function quickPersonalQuestion(type) {
+            const questions = {
+                sleep: "王爺爺最近晚上睡眠品質如何？有什麼改善的建議嗎？",
+                driving: "關於王爺爺的駕駛安全，目前有什麼需要特別注意的嗎？",
+                medication: "用藥提醒的時間安排是否需要調整？",
+                mood: "最近王爺爺的情緒狀況如何？"
+            };
+            
+            document.getElementById('personalChatInput').value = questions[type];
+            sendPersonalMessage();
+        }
+
+        // Group consultation functions
+        function sendGroupMessage() {
+            const input = document.getElementById('groupChatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addGroupChatMessage(message, true, '陳美玲');
+                input.value = '';
+                
+                setTimeout(() => {
+                    const response = generateGroupAIResponse(message);
+                    addGroupChatMessage(response, false, '小雨');
+                }, 2000);
+            }
+        }
+
+        function addGroupChatMessage(message, isUser = false, sender = '') {
+            const chatContainer = document.getElementById('groupChatMessages');
+            const messageDiv = document.createElement('div');
+            
+            if (isUser) {
+                messageDiv.className = 'message-user p-4';
+                messageDiv.innerHTML = `
+                    <div class="text-sm">${message}</div>
+                    <div class="text-xs opacity-80 mt-2">${sender} • 剛剛</div>
+                `;
+            } else {
+                messageDiv.className = 'message-ai p-4';
+                messageDiv.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center text-sm">
+                            🌧️
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-700">${message}</p>
+                            <div class="text-xs text-slate-500 mt-2">${sender} • 剛剛</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function generateGroupAIResponse(message) {
+            const responses = [
+                "謝謝大家的討論。我建議我們可以...",
+                "根據家庭成員的不同需求，我的建議是...",
+                "這是一個很好的協作議題，讓我們一起規劃...",
+                "考慮到AIPET原則應用，我建議採用以下方式..."
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // Navigation functions
+        function showDrivingDetail() {
+            alert('🚗 駕駛詳情\n\n✓ 今日行程：\n• 09:30 前往美廉社\n• 10:15 安全返家\n\n✓ 安全狀況：\n• 路線正常\n• 無異常行為\n• 家人已收到通知');
+        }
+
+        function addNewRoute() {
+            alert('➕ 新增路線\n\n請輸入目的地資訊：\n• 地點名稱\n• 詳細地址\n• 預估時間\n\n系統將自動分析最安全的路線');
+        }
+
+        function activateRoute(routeType) {
+            const routes = {
+                supermarket: '美廉社',
+                clinic: '診所',
+                park: '大安森林公園'
+            };
+            alert(`🚗 啟用路線：${routes[routeType]}\n\n✓ GPS導航已準備就緒\n✓ 家人將收到出發通知\n✓ 安全監控已啟動\n\n預計行程時間會即時更新給家人`);
+        }
+
+        function roadsideAssistance() {
+            alert('🚗 道路救援\n\n✓ 24小時緊急服務\n✓ 專業技師派遣\n✓ GPS定位協助\n\n正在為您連接最近的服務站...');
+        }
+
+        function familyContact() {
+            alert('👨‍👩‍👧‍👦 家人聯絡\n\n✓ 一鍵通知所有家庭成員\n✓ 即時位置分享\n✓ 狀況更新推送\n\n通知已發送給：陳美玲、王志明、李小華');
+        }
+
+        // Family collaboration functions
+        function addCalendarEvent() {
+            alert('📅 新增行事曆事件\n\n請填寫活動資訊：\n• 活動名稱\n• 日期時間\n• 負責人員\n• 備註說明\n\n系統會自動提醒相關人員');
+        }
+
+        function assignTask(taskType) {
+            const tasks = {
+                medication: '藥物補充',
+                checkup: '定期健康檢查',
+                exercise: '復健運動陪伴'
+            };
+            alert(`📋 指派任務：${tasks[taskType]}\n\n請選擇負責人：\n• 陳美玲（主要照顧者）\n• 王志明（兒子）\n• 張淑芬（看護）\n\n任務將會加入對方的待辦清單`);
+        }
+
+        function addNewTask() {
+            alert('📋 新增任務\n\n請輸入任務資訊：\n• 任務名稱\n• 重要程度\n• 截止日期\n• 負責人員\n\n任務建立後會通知相關人員');
+        }
+
+        function startFamilyChat() {
+            alert('💬 家庭群組\n\n✓ 即時訊息交流\n✓ 照護狀況分享\n✓ 協調照護安排\n\n正在開啟家庭群組對話...');
+        }
+
+        function sendEmergencyAlert() {
+            alert('🚨 緊急通知\n\n⚠️ 即將發送緊急通知給所有家庭成員\n\n通知內容將包含：\n• 緊急事件類型\n• 當前位置資訊\n• 建議處理方式\n\n確定要發送嗎？');
+        }
+
+        function shareUpdate() {
+            alert('📝 狀況分享\n\n選擇分享內容：\n• 今日健康狀況\n• 用藥記錄\n• 活動參與情形\n• 情緒變化觀察\n\n分享內容會發送給所有家庭成員');
         }
 
         // Auto-close AIPET helper when clicking outside
