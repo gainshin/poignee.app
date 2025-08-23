@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poignée 伴阮 - AIPET 合規智能照護平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui'],
+                        'noto': ['Noto Sans TC', 'system-ui']
+                    },
+                    colors: {
+                        'brand': {
+                            50: '#fef7ff',
+                            100: '#feeeff', 
+                            200: '#fcd8ff',
+                            300: '#f9b5ff',
+                            400: '#f482ff',
+                            500: '#ec4eff',
+                            600: '#d821eb',
+                            700: '#b815c7',
+                            800: '#9614a3',
+                            900: '#791682'
+                        },
+                        'accent': {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd', 
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e'
+                        },
+                        'aipet': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d'
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+                        'medium': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'large': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'glow': '0 0 20px rgba(236, 78, 255, 0.3)',
+                        'glow-blue': '0 0 20px rgba(14, 165, 233, 0.3)',
+                        'glow-green': '0 0 20px rgba(34, 197, 94, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, 
+                #fef7ff 0%, 
+                #f0f9ff 25%, 
+                #feeeff 50%, 
+                #e0f2fe 75%, 
+                #fef7ff 100%);
+            min-height: 100vh;
+        }
+
+        /* Modern Glass Cards */
+        .neo-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .neo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        /* AIPET Helper Styles */
+        .aipet-helper {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .aipet-trigger {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+            transition: all 0.3s ease;
+            animation: aipet-pulse 3s infinite;
+        }
+
+        .aipet-trigger:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(34, 197, 94, 0.6);
+        }
+
+        .aipet-panel {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 400px;
+            max-width: calc(100vw - 48px);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .aipet-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .aipet-header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 24px 24px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: between;
+        }
+
+        .aipet-content {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .aipet-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .aipet-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 3px;
+        }
+
+        @keyframes aipet-pulse {
+            0%, 100% { box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4); }
+            50% { box-shadow: 0 8px 25px rgba(34, 197, 94, 0.7), 0 0 0 8px rgba(34, 197, 94, 0.1); }
+        }
+
+        .aipet-feature-card {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.05) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .aipet-feature-card:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.08) 100%);
+            transform: translateY(-1px);
+        }
+
+        .aipet-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            background: rgba(34, 197, 94, 0.1);
+            color: #15803d;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* Timeout indicator */
+        .timeout-indicator {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            right: 4px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .timeout-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            width: 100%;
+            animation: timeout-countdown 30s linear forwards;
+        }
+
+        @keyframes timeout-countdown {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* Existing styles from original design */
+        .btn-primary {
+            background: linear-gradient(135deg, #ec4eff 0%, #d821eb 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(236, 78, 255, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(236, 78, 255, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.6);
+        }
+
+        .nav-tab {
+            position: relative;
+            padding: 12px 24px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #ec4eff 0%, #d821eb 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(236, 78, 255, 0.4);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-1px);
+        }
+
+        .status-online {
+            background: linear-gradient(135deg, #10b981, #059669);
+            animation: pulse-subtle 2s infinite;
+        }
+
+        .status-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            animation: pulse-subtle 2s infinite;
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            animation: pulse-urgent 1.5s infinite;
+        }
+
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+
+        @keyframes pulse-urgent {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .message-user {
+            background: linear-gradient(135deg, #ec4eff 0%, #d821eb 100%);
+            color: white;
+            border-radius: 20px 20px 4px 20px;
+            margin-left: 20%;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .message-ai {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 20px 20px 20px 4px;
+            margin-right: 20%;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .message-family {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border-radius: 20px 20px 4px 20px;
+            margin-left: 15%;
+            margin-right: 15%;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+        }
+
+        .page.active {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+
+        .form-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #ec4eff;
+            box-shadow: 0 0 0 3px rgba(236, 78, 255, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .interactive-element {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .interactive-element:hover {
+            transform: scale(1.02);
+        }
+
+        .interactive-element:active {
+            transform: scale(0.98);
+        }
+
+        .floating-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.1;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-orb:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(45deg, #ec4eff, #d821eb);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-orb:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #0ea5e9, #0284c7);
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .floating-orb:nth-child(3) {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(45deg, #10b981, #059669);
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+            33% { transform: translateY(-20px) translateX(10px) scale(1.1); }
+            66% { transform: translateY(10px) translateX(-10px) scale(0.9); }
+        }
+
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(236, 78, 255, 0.3) transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #ec4eff, #d821eb);
+            border-radius: 3px;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #ec4eff 0%, #d821eb 50%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-card-good {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-card-warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-card-error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body class="font-inter">
+    <!-- Floating Background Elements -->
+    <div class="floating-orb"></div>
+    <div class="floating-orb"></div>
+    <div class="floating-orb"></div>
+
+    <!-- AIPET Helper -->
+    <div class="aipet-helper" id="aipetHelper">
+        <div class="aipet-trigger" onclick="toggleAIPETHelper()">
+            🛡️
+        </div>
+        <div class="aipet-panel" id="aipetPanel">
+            <div class="aipet-header">
+                <div class="flex items-center justify-between w-full">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl">🛡️</span>
+                        <div>
+                            <h3 class="font-semibold text-sm">AIPET 合規助手</h3>
+                            <p class="text-xs opacity-90">AI基本法合規說明</p>
+                        </div>
+                    </div>
+                    <button onclick="closeAIPETHelper()" class="text-white hover:bg-white/20 rounded-lg p-1 transition-colors">
+                        ✕
+                    </button>
+                </div>
+            </div>
+            <div class="aipet-content" id="aipetContent">
+                <!-- Content will be dynamically loaded based on current page -->
+            </div>
+            <div class="timeout-indicator">
+                <div class="timeout-progress" id="timeoutProgress"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="min-h-screen">
+        <!-- Modern Header -->
+        <header class="sticky top-0 z-50">
+            <div class="neo-card mx-4 mt-4 mb-6">
+                <div class="px-8 py-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-glow">
+                                P
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-gradient">Poignée 伴阮</h1>
+                                <p class="text-slate-600 text-sm font-medium">AIPET 合規智能照護平台</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-6">
+                            <!-- AIPET Status Badge -->
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 status-online rounded-full shadow-glow-green"></div>
+                                <span class="text-sm font-medium text-aipet-700">AIPET 合規</span>
+                                <span class="aipet-badge">✓ 通過</span>
+                            </div>
+                            
+                            <!-- Connection Status -->
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 status-online rounded-full shadow-glow"></div>
+                                <span class="text-sm font-medium text-slate-700">系統連線正常</span>
+                            </div>
+                            
+                            <!-- User Avatar -->
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center text-white font-semibold">
+                                    陳
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-slate-800">陳美玲</div>
+                                    <div class="text-xs text-slate-500">主要照顧者</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-4 max-w-7xl">
+            <!-- Navigation Tabs -->
+            <div class="mb-8">
+                <div class="flex justify-center">
+                    <div class="neo-card p-2">
+                        <div class="flex space-x-2">
+                            <button onclick="switchTab('overview')" class="nav-tab active" id="overviewTab">
+                                <span class="flex items-center space-x-2">
+                                    <span class="text-lg">📊</span>
+                                    <span class="font-medium">總覽</span>
+                                </span>
+                            </button>
+                            <button onclick="switchTab('ai-consultation')" class="nav-tab" id="ai-consultationTab">
+                                <span class="flex items-center space-x-2">
+                                    <span class="text-lg">🤖</span>
+                                    <span class="font-medium">AI 諮詢</span>
+                                </span>
+                            </button>
+                            <button onclick="switchTab('navigation')" class="nav-tab" id="navigationTab">
+                                <span class="flex items-center space-x-2">
+                                    <span class="text-lg">🚗</span>
+                                    <span class="font-medium">導航安全</span>
+                                </span>
+                            </button>
+                            <button onclick="switchTab('family')" class="nav-tab" id="familyTab">
+                                <span class="flex items-center space-x-2">
+                                    <span class="text-lg">👥</span>
+                                    <span class="font-medium">家庭協作</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overviewContent" class="page active">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Main Status Card -->
+                    <div class="lg:col-span-2">
+                        <div class="neo-card p-8 mb-8">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-2xl font-bold text-slate-800">王爺爺今日狀況</h2>
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 status-online rounded-full"></div>
+                                        <span class="text-sm font-medium text-emerald-700">狀態良好</span>
+                                    </div>
+                                    <div class="aipet-badge">🛡️ AIPET 保護中</div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="status-card-good rounded-2xl p-6 interactive-element">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="text-3xl">🧠</div>
+                                        <div class="text-right">
+                                            <div class="text-2xl font-bold text-emerald-700">85%</div>
+                                            <div class="text-sm text-emerald-600">認知活動</div>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-slate-600">今日完成記憶訓練，表現穩定</p>
+                                    <div class="text-xs text-aipet-600 mt-2">✓ 隱私保護運算</div>
+                                </div>
+                                
+                                <div class="status-card-good rounded-2xl p-6 interactive-element">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="text-3xl">🚗</div>
+                                        <div class="text-right">
+                                            <div class="text-2xl font-bold text-emerald-700">安全</div>
+                                            <div class="text-sm text-emerald-600">駕駛狀態</div>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-slate-600">按預設路線，無偏離行為</p>
+                                    <div class="text-xs text-aipet-600 mt-2">✓ 本地化處理</div>
+                                </div>
+                                
+                                <div class="status-card-warning rounded-2xl p-6 interactive-element">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="text-3xl">💊</div>
+                                        <div class="text-right">
+                                            <div class="text-2xl font-bold text-amber-700">提醒</div>
+                                            <div class="text-sm text-amber-600">用藥時間</div>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-slate-600">晚餐後藥物 - 19:30</p>
+                                    <div class="text-xs text-aipet-600 mt-2">✓ 同意式處理</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="neo-card p-6">
+                            <h3 class="text-lg font-semibold text-slate-800 mb-4">快速操作</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <button onclick="emergencyCall()" class="btn-primary interactive-element">
+                                    <span class="block text-lg mb-1">📞</span>
+                                    <span class="text-sm">緊急聯絡</span>
+                                </button>
+                                <button onclick="showLocation()" class="btn-secondary interactive-element">
+                                    <span class="block text-lg mb-1">📍</span>
+                                    <span class="text-sm">位置追蹤</span>
+                                </button>
+                                <button onclick="medicineReminder()" class="btn-primary interactive-element">
+                                    <span class="block text-lg mb-1">💊</span>
+                                    <span class="text-sm">用藥提醒</span>
+                                </button>
+                                <button onclick="medicalRecord()" class="btn-secondary interactive-element">
+                                    <span class="block text-lg mb-1">🏥</span>
+                                    <span class="text-sm">醫療記錄</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="space-y-6">
+                        <!-- AI Assistant Card -->
+                        <div class="neo-card p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center text-white text-xl shadow-glow">
+                                    🌧️
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-slate-800">小雨 AI 助理</h3>
+                                    <p class="text-xs text-slate-500">AIPET 合規專屬顧問</p>
+                                </div>
+                            </div>
+                            <div class="bg-gradient-to-r from-brand-50 to-accent-50 rounded-xl p-4 mb-4">
+                                <p class="text-sm text-slate-700 mb-2">"今天王爺爺的整體狀況不錯，建議您可以安排一些輕度的戶外活動。"</p>
+                                <div class="text-xs text-slate-500">2分鐘前</div>
+                                <div class="text-xs text-aipet-600 mt-1">🛡️ 本次回應經AIPET倫理審查</div>
+                            </div>
+                            <button onclick="switchTab('ai-consultation')" class="btn-primary w-full interactive-element">
+                                開始對話
+                            </button>
+                        </div>
+
+                        <!-- AIPET Compliance Status -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">🛡️ AIPET 合規狀態</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-slate-700">個人資料保護</span>
+                                    <div class="flex items-center space-x-1">
+                                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span class="text-xs text-green-600">✓</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-slate-700">演算法透明度</span>
+                                    <div class="flex items-center space-x-1">
+                                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span class="text-xs text-green-600">✓</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-slate-700">倫理AI運算</span>
+                                    <div class="flex items-center space-x-1">
+                                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span class="text-xs text-green-600">✓</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-slate-700">使用者權利保障</span>
+                                    <div class="flex items-center space-x-1">
+                                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span class="text-xs text-green-600">✓</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-aipet-50 border border-aipet-200 rounded-xl">
+                                <div class="text-xs text-aipet-700 font-medium">📋 今日合規檢查</div>
+                                <div class="text-xs text-aipet-600 mt-1">所有項目通過 • 最後檢查：剛剛</div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activities -->
+                        <div class="neo-card p-6">
+                            <h3 class="font-semibold text-slate-800 mb-4">最近活動</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-sm">✅</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-slate-700">完成晨間運動</p>
+                                        <p class="text-xs text-slate-500">30分鐘前</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-sm">🚗</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-slate-700">外出購物</p>
+                                        <p class="text-xs text-slate-500">1小時前 • AIPET保護</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-sm">💊</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-slate-700">按時服藥</p>
+                                        <p class="text-xs text-slate-500">3小時前</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other tabs content remains the same but with AIPET indicators added -->
+            <!-- AI Consultation Tab -->
+            <div id="ai-consultationContent" class="page">
+                <div class="neo-card p-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center space-x-3">
+                        <span>🤖 AI 諮詢中心</span>
+                        <span class="aipet-badge">🛡️ AIPET 合規</span>
+                    </h2>
+                    <p class="text-slate-600">AI諮詢功能展示頁面，包含一對一和群組諮詢模式...</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tab -->
+            <div id="navigationContent" class="page">
+                <div class="neo-card p-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center space-x-3">
+                        <span>🚗 導航與駕駛安全</span>
+                        <span class="aipet-badge">🛡️ 隱私保護</span>
+                    </h2>
+                    <p class="text-slate-600">汽車導航和CarPlay配置功能展示頁面...</p>
+                </div>
+            </div>
+
+            <!-- Family Tab -->
+            <div id="familyContent" class="page">
+                <div class="neo-card p-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center space-x-3">
+                        <span>👥 家庭協作管理</span>
+                        <span class="aipet-badge">🛡️ 資料保護</span>
+                    </h2>
+                    <p class="text-slate-600">家庭成員協作和任務管理功能展示頁面...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Current active tab
+        let activeTab = 'overview';
+        let aipetHelperTimeout;
+        let aipetPanelOpen = false;
+
+        // AIPET content for different pages
+        const aipetContent = {
+            overview: {
+                title: "總覽頁面 - AIPET 合規",
+                features: [
+                    {
+                        icon: "🛡️",
+                        title: "個人資料保護",
+                        description: "所有健康數據採用端對端加密，僅在本地設備處理敏感資訊",
+                        compliance: "符合AIPET個資保護規範"
+                    },
+                    {
+                        icon: "🔍",
+                        title: "演算法透明度",
+                        description: "認知活動評分算法完全透明，用戶可查看評分依據和計算邏輯",
+                        compliance: "提供演算法解釋功能"
+                    },
+                    {
+                        icon: "⚖️",
+                        title: "倫理AI運算",
+                        description: "AI建議經過倫理審查，確保不含歧視或偏見，維護患者尊嚴",
+                        compliance: "遵循AI倫理準則"
+                    },
+                    {
+                        icon: "👤",
+                        title: "使用者權利",
+                        description: "支援資料攜帶、修正、刪除等權利，透明化同意管理機制",
+                        compliance: "完整保障資料主體權利"
+                    }
+                ]
+            },
+            "ai-consultation": {
+                title: "AI諮詢 - AIPET 合規",
+                features: [
+                    {
+                        icon: "🤖",
+                        title: "聯邦學習機制",
+                        description: "AI模型訓練不上傳個人數據，在本地設備進行學習和優化",
+                        compliance: "資料不離開本地設備"
+                    },
+                    {
+                        icon: "🔐",
+                        title: "同態加密處理",
+                        description: "諮詢內容在加密狀態下進行AI分析，保護對話隱私",
+                        compliance: "隱私保護運算技術"
+                    },
+                    {
+                        icon: "📊",
+                        title: "可解釋AI回應",
+                        description: "每個AI建議都附帶推理過程說明，用戶可了解建議依據",
+                        compliance: "演算法決策透明化"
+                    },
+                    {
+                        icon: "⭐",
+                        title: "偏見檢測機制",
+                        description: "定期檢測AI回應的文化偏見和年齡歧視，確保公平對待",
+                        compliance: "消除演算法偏見"
+                    }
+                ]
+            },
+            navigation: {
+                title: "導航安全 - AIPET 合規",
+                features: [
+                    {
+                        icon: "📍",
+                        title: "本地化GPS處理",
+                        description: "位置數據優先在本地處理，僅必要時加密傳輸安全資訊",
+                        compliance: "最小化地理資料蒐集"
+                    },
+                    {
+                        icon: "🚗",
+                        title: "駕駛行為分析",
+                        description: "行為模式分析採用差分隱私技術，保護個人駕駛習慣資料",
+                        compliance: "隱私保護行為分析"
+                    },
+                    {
+                        icon: "🎯",
+                        title: "預設路線管理",
+                        description: "路線偏好設定由家人授權管理，支援細分化同意機制",
+                        compliance: "授權式資料處理"
+                    },
+                    {
+                        icon: "🚨",
+                        title: "緊急情況處理",
+                        description: "緊急時才自動分享位置，平時嚴格保護地理隱私",
+                        compliance: "緊急例外處理機制"
+                    }
+                ]
+            },
+            family: {
+                title: "家庭協作 - AIPET 合規",
+                features: [
+                    {
+                        icon: "👨‍👩‍👧‍👦",
+                        title: "家庭成員管理",
+                        description: "家庭資料分享需經主照顧者授權，支援細分化權限控制",
+                        compliance: "分級授權機制"
+                    },
+                    {
+                        icon: "📋",
+                        title: "任務分配系統",
+                        description: "任務資料採用端對端加密，確保家庭內部溝通隱私",
+                        compliance: "家庭隱私保護"
+                    },
+                    {
+                        icon: "🔔",
+                        title: "通知推送機制",
+                        description: "通知內容經過隱私篩選，避免洩露敏感醫療資訊",
+                        compliance: "資訊脫敏處理"
+                    },
+                    {
+                        icon: "📊",
+                        title: "協作數據分析",
+                        description: "家庭協作效能分析使用匿名化數據，保護個人身份",
+                        compliance: "匿名化統計分析"
+                    }
+                ]
+            }
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            updateAIPETContent();
+        });
+
+        function initializeApp() {
+            console.log('Poignée AIPET Compliance Platform initialized');
+        }
+
+        // Tab switching function
+        function switchTab(tab) {
+            activeTab = tab;
+            
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                if (btn.id.includes('Tab')) btn.classList.remove('active');
+            });
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            document.getElementById(tab + 'Tab').classList.add('active');
+            document.getElementById(tab + 'Content').classList.add('active');
+            
+            // Update AIPET content for current page
+            updateAIPETContent();
+        }
+
+        // AIPET Helper Functions
+        function toggleAIPETHelper() {
+            aipetPanelOpen = !aipetPanelOpen;
+            const panel = document.getElementById('aipetPanel');
+            
+            if (aipetPanelOpen) {
+                panel.classList.add('active');
+                startAIPETTimeout();
+            } else {
+                panel.classList.remove('active');
+                clearTimeout(aipetHelperTimeout);
+            }
+        }
+
+        function closeAIPETHelper() {
+            aipetPanelOpen = false;
+            document.getElementById('aipetPanel').classList.remove('active');
+            clearTimeout(aipetHelperTimeout);
+        }
+
+        function startAIPETTimeout() {
+            // Clear any existing timeout
+            clearTimeout(aipetHelperTimeout);
+            
+            // Reset progress bar
+            const progress = document.getElementById('timeoutProgress');
+            progress.style.animation = 'none';
+            progress.offsetHeight; // Trigger reflow
+            progress.style.animation = 'timeout-countdown 30s linear forwards';
+            
+            // Set timeout for 30 seconds
+            aipetHelperTimeout = setTimeout(() => {
+                closeAIPETHelper();
+            }, 30000);
+        }
+
+        function updateAIPETContent() {
+            const content = aipetContent[activeTab];
+            if (!content) return;
+            
+            const contentElement = document.getElementById('aipetContent');
+            
+            contentElement.innerHTML = `
+                <div class="mb-4">
+                    <h4 class="font-semibold text-slate-800 mb-2">${content.title}</h4>
+                    <p class="text-xs text-slate-600">此頁面的AIPET合規功能說明</p>
+                </div>
+                
+                <div class="space-y-3">
+                    ${content.features.map(feature => `
+                        <div class="aipet-feature-card">
+                            <div class="flex items-start space-x-3">
+                                <div class="text-lg">${feature.icon}</div>
+                                <div class="flex-1">
+                                    <h5 class="font-medium text-sm text-slate-800 mb-1">${feature.title}</h5>
+                                    <p class="text-xs text-slate-600 mb-2">${feature.description}</p>
+                                    <div class="text-xs text-aipet-700 font-medium">✓ ${feature.compliance}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="mt-4 p-3 bg-aipet-50 border border-aipet-200 rounded-xl">
+                    <div class="text-xs text-aipet-700 font-medium mb-1">📞 AIPET 合規諮詢</div>
+                    <div class="text-xs text-aipet-600">
+                        如有合規疑問，請聯絡：<br>
+                        gainshin@outlook.com
+                    </div>
+                </div>
+            `;
+        }
+
+        // Quick action functions (simplified for demo)
+        function emergencyCall() {
+            alert('🚨 緊急聯絡功能\n\n✓ AIPET合規處理：\n• 僅在緊急情況下自動分享位置\n• 通知內容經隱私篩選\n• 符合醫療資料保護規範\n\n正在連接緊急服務...');
+        }
+
+        function showLocation() {
+            alert('📍 位置追蹤功能\n\n✓ AIPET合規處理：\n• 位置數據本地化處理\n• 最小化地理資料蒐集\n• 家人授權查看機制\n\n王爺爺目前位置：家中');
+        }
+
+        function medicineReminder() {
+            alert('💊 用藥提醒功能\n\n✓ AIPET合規處理：\n• 醫療資料端對端加密\n• 同意式資料處理\n• 本地化隱私運算\n\n下次用藥時間：19:30');
+        }
+
+        function medicalRecord() {
+            alert('🏥 醫療記錄功能\n\n✓ AIPET合規處理：\n• 特種個人資料保護\n• 完整資料主體權利\n• 醫療隱私嚴格把關\n\n可查看最近就診記錄');
+        }
+
+        // Auto-close AIPET helper when clicking outside
+        document.addEventListener('click', function(event) {
+            const helper = document.getElementById('aipetHelper');
+            const panel = document.getElementById('aipetPanel');
+            
+            if (aipetPanelOpen && !helper.contains(event.target)) {
+                closeAIPETHelper();
+            }
+        });
+
+        // Prevent closing when clicking inside the panel
+        document.getElementById('aipetPanel').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+
+        // Update AIPET content when page changes
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && aipetPanelOpen) {
+                startAIPETTimeout();
+            }
+        });
+    </script>
+</body>
+</html>
