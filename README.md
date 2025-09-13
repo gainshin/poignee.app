@@ -349,9 +349,9 @@ Poignée 承諾在AI創新的同時，嚴格遵守AIPET規範，確保使用者�
 
 ## 聯絡資訊
 
-**專案維護者**：gainshin  
-**Email**：gainshin@outlook.com  
-**商業合作**：gainshin@outlook.com  
+**專案維護者**：project@pricavyux.ca   
+**Email**：project@pricavyux.ca   
+**商業合作**：project@pricavyux.ca  
 **技術支援**：GitHub Issues
 
 ---
