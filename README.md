@@ -43,96 +43,7 @@ Poignée (伴阮) 是一款專為早期至中期失智症患者設計的溫暖�
 - 情緒分析統計
 - 洞察與建議
 
-## 技術架構
 
-### 前端技術
-- **React 18** with TypeScript
-- **Vite** - 建構工具
-- **Tailwind CSS** - 樣式框架
-- **Framer Motion** - 動畫效果
-- **Zustand** - 狀態管理
-- **React Router** - 路由管理
-- **Recharts** - 數據視覺化
-- **Lucide React** - 圖標庫
-
-### UI/UX 設計
-- **Glassmorphism** 視覺風格
-- **Mobile-first** 響應式設計
-- 流暢的動畫與過渡效果
-- 無障礙設計考量
-
-## 安裝與執行
-
-### 環境需求
-- Node.js 16+
-- npm 或 yarn
-
-### 安裝步驟
-
-1. 安裝依賴套件
-```bash
-npm install
-```
-
-2. 啟動開發伺服器
-```bash
-npm run dev
-```
-
-3. 建構生產版本
-```bash
-npm run build
-```
-
-4. 預覽生產版本
-```bash
-npm run preview
-```
-
-## 專案結構
-
-```
-src/
-├── components/       # 可重用組件
-│   ├── Layout.tsx   # 主要佈局組件
-│   └── GlassCard.tsx # 毛玻璃卡片組件
-├── pages/           # 頁面組件
-│   ├── Dashboard.tsx
-│   ├── AICompanion.tsx
-│   ├── MemoryJournal.tsx
-│   ├── FamilyConnection.tsx
-│   ├── CulturalContent.tsx
-│   └── EmotionTracking.tsx
-├── stores/          # Zustand 狀態管理
-│   └── useAppStore.ts
-├── services/        # API 服務與模擬數據
-│   └── mockData.ts
-├── types/           # TypeScript 類型定義
-│   └── index.ts
-├── utils/           # 工具函數
-│   └── helpers.ts
-├── App.tsx          # 主應用組件
-├── main.tsx         # 應用入口
-└── index.css        # 全域樣式
-```
-
-## 開發指南
-
-### 添加新功能
-1. 在 `types/` 中定義數據類型
-2. 在 `stores/` 中添加狀態管理
-3. 在 `pages/` 中創建頁面組件
-4. 在 `App.tsx` 中配置路由
-
-### 樣式開發
-- 使用 Tailwind CSS 進行樣式開發
-- 自定義玻璃效果類別在 `index.css` 中定義
-- 遵循 Mobile-first 設計原則
-
-### 狀態管理
-- 使用 Zustand 進行全域狀態管理
-- 保持狀態結構扁平化
-- 避免深層嵌套的狀態更新
 
 ## AIPET 應對策略
 
@@ -151,16 +62,7 @@ src/
   - 明確告知資料蒐集目的與使用範圍
   - 提供資料修正、刪除權限
 
-#### 同意機制設計
-```typescript
-interface ConsentManager {
-  medicalData: boolean;      // 醫療資料處理同意
-  familySharing: boolean;    // 家庭分享功能同意
-  aiAnalysis: boolean;       // AI分析處理同意
-  dataRetention: string;     // 資料保存期限選擇
-  thirdPartySharing: boolean; // 第三方分享同意
-}
-```
+
 
 ### 🤖 AI 演算法透明度 (Algorithm Transparency)
 
@@ -218,71 +120,6 @@ ethics_checklist:
   transparency: true          # 透明度原則
 ```
 
-### 🔐 技術實作規範 (Technical Implementation)
-
-#### 資料安全架構
-```mermaid
-graph TD
-    A[使用者輸入] --> B[本地加密]
-    B --> C[安全傳輸層]
-    C --> D[伺服器端處理]
-    D --> E[加密儲存]
-    E --> F[存取控制]
-    F --> G[稽核記錄]
-```
-
-#### 隱私保護技術
-- **聯邦學習** (Federated Learning)：AI模型訓練不離開本地設備
-- **差分隱私** (Differential Privacy)：統計分析時保護個人隱私
-- **同態加密** (Homomorphic Encryption)：加密狀態下進行計算
-- **零知識證明** (Zero-Knowledge Proof)：驗證身份而不洩露資訊
-
-### 📋 合規監控機制 (Compliance Monitoring)
-
-#### 自動化合規檢測
-```python
-class ComplianceMonitor:
-    def __init__(self):
-        self.checks = [
-            self.check_data_minimization,
-            self.check_consent_validity,
-            self.check_algorithm_fairness,
-            self.check_security_measures
-        ]
-    
-    def daily_compliance_audit(self):
-        results = []
-        for check in self.checks:
-            result = check()
-            results.append(result)
-            if not result.passed:
-                self.trigger_alert(result)
-        return results
-```
-
-#### 定期合規報告
-- **月度隱私影響評估**：評估新功能對隱私的影響
-- **季度演算法公平性稽核**：檢視AI決策的公平性
-- **年度倫理審查**：全面檢視產品倫理合規狀況
-
-### 📖 使用者權利保障 (User Rights Protection)
-
-#### 資料主體權利實現
-- **資料攜帶權**：提供標準格式的資料匯出功能
-- **被遺忘權**：完整刪除使用者資料的能力
-- **資料修正權**：允許使用者修正錯誤資料
-- **處理限制權**：暫停特定資料處理活動
-
-#### 申訴處理機制
-```typescript
-interface GrievanceSystem {
-  submitComplaint: (issue: ComplianceIssue) => Promise<CaseId>;
-  trackStatus: (caseId: CaseId) => Promise<CaseStatus>;
-  escalateToRegulator: (caseId: CaseId) => Promise<void>;
-  provideFeedback: (caseId: CaseId, feedback: string) => Promise<void>;
-}
-```
-
 ### 🎯 實施時程規劃 (Implementation Timeline)
 
 #### 第一階段 (2025 Q1-Q2)：基礎合規
@@ -305,7 +142,7 @@ interface GrievanceSystem {
 
 ### 📞 AIPET 聯絡窗口
 
-**合規事務聯絡人**：gainshin@outlook.com
+**合規事務聯絡人**：project@pricavyux.ca  
 **技術實作負責人**：Poignée Technical Team
 **法務諮詢窗口**：Legal Affairs Department
 
@@ -313,21 +150,45 @@ interface GrievanceSystem {
 
 Poignée 承諾在AI創新的同時，嚴格遵守AIPET規範，確保使用者權益與社會責任的平衡發展。
 
-## 未來擴展
+---
 
-### 計劃功能
-- 真實語音識別與合成 (Speech-to-Text / Text-to-Speech)
-- 後端 API 整合
-- 多語言自動翻譯
-- 照片上傳與管理
-- 視訊通話功能
-- AI 個性化學習
+## LLM 設計模式整合 (LLM Design Pattern Integration)
 
-### 技術優化
-- Progressive Web App (PWA) 支援
-- 離線功能
-- 效能優化
-- 無障礙功能增強
+為提升 Poignée 的使用者體驗，我們將導入《UX for AI》第 9 章所闡述的七大 LLM 設計模式，將其應用於核心功能中，打造更具同理心、更直覺的互動。
+
+### 1. 重述 (Restating)
+**目的**：在執行關鍵操作前，由 AI 複述其理解的用戶指令，以確認意圖，對於記憶力可能衰退的用戶尤其重要。
+- **應用於 `記憶日記`**：當用戶口述一段回憶後，AI 會說：「好的，我聽您說，您想記錄的是『今天下午和孫女在公園散步，陽光很好』，對嗎？」確認後再儲存，確保記錄的準確性。
+- **應用於 `AI 陪伴`**：在設定提醒或執行任務前，AI 會確認：「您希望我提醒您下午三點吃藥，是嗎？」
+
+### 2. 自動完成 (Auto-Complete)
+**目的**：引導式地建構查詢或輸入，降低用戶的認知與操作負擔。
+- **應用於 `記憶日記`**：當用戶開始輸入或提及家人名字時，如「陳...」，系統會從 `家人連結` 清單中建議「您是指『陳美玲』嗎？」
+- **應用於 `文化寶庫`**：當用戶想找特定懷舊內容時，如「我想聽鄧麗君的...」，系統會推薦「是《月亮代表我的心》嗎？」
+
+### 3. 對話回應 (Talk-Back)
+**目的**：當用戶的表達模糊、矛盾或情緒低落時，AI 不做生硬的糾正或回應，而是以具同理心的協作方式引導對話。這完全體現了 Poignée「陪伴而非糾正」的核心價值。
+- **應用於 `AI 陪伴`**：若用戶提及已逝的親人，例如「我要去找我媽媽」，AI 不會直接反駁，而是溫和地回應：「想媽媽啦？我們可以一起看看媽媽的老照片，回憶一下和她在一起的快樂時光，好嗎？」
+
+### 4. 初始建議 (Initial Suggestions)
+**目的**：在互動開始前，主動提供個人化的建議，激發用戶的對話興趣。
+- **應用於 `AI 陪伴` / `文化寶庫`**：每日首次開啟 App 時，根據時間和節慶提供問候：「早安！今天是端午節，要不要聽聽白蛇傳的故事？」或「午安，天氣不錯，想聊聊您年輕時最喜歡的夏日活動嗎？」
+
+### 5. 下一步 (Next Steps)
+**目的**：在一次互動完成後，智慧地推薦下一步可能的操作，讓功能之間的串連更流暢。
+- **應用於 `記憶日記`**：用戶記錄完一段與家人的愉快回憶後，AI 會提問：「這個回憶真棒！您想現在就把這段紀錄分享給您的兒子嗎？」或「聽起來您今天很開心，要不要也記錄一下現在的心情？」
+
+### 6. 重新生成調整 (Regen Tweaks)
+**目的**：提供對 AI 生成內容進行迭代調整的選項。此模式在 Poignée 中適用於非核心對話的內容生成。
+- **應用於 `家人連結`**：在為家人生成 `每日摘要` 時，AI 可以提供不同語氣的選項，例如在生成摘要後顯示按鈕：「[換個更溫馨的語氣]」或「[讓摘要更簡短一些]」，讓主要照護者能客製化溝通方式。
+
+### 7. 護欄機制 (Guardrails)
+**目的**：確保 AI 回應的安全與倫理底線，是 Poignée 最關鍵的設計環節。
+- **應用於 `AI 陪伴`**：
+    - **防止不當建議**：嚴禁 AI 提供任何醫療建議或確認可能有害的資訊。
+    - **危機處理協議**：若偵測到用戶表達強烈的負面情緒或自殺意念，`護欄機制`將觸發預設安全協議：「聽起來您現在非常難受，這很重要。我正在為您聯繫您的緊急聯絡人 [兒子姓名]，讓他來陪陪您。」
+    - **避免爭議話題**：引導對話遠離可能引起用戶焦慮或困惑的政治、宗教等敏感議題。
+
 
 ## 貢獻指南
 
@@ -345,7 +206,7 @@ Poignée 承諾在AI創新的同時，嚴格遵守AIPET規範，確保使用者�
 - **Poignée 社群授權條款**：個人和有限組織使用
 - **商業授權條款**：內部團隊部署和程式碼修改
 
-詳見 LICENSE 文件或聯絡 gainshin@outlook.com 洽談商業授權。
+詳見 LICENSE 文件或聯絡 project@pricavyux.ca  洽談商業授權。
 
 ## 聯絡資訊
 
